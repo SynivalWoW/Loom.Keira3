@@ -215,7 +215,10 @@
     "BROWSE": "Browse…",
     "GEN_DBC": "Generate CreatureDisplayInfo.dbc",
     "CONVERT_FIRST": "Convert MD21→MD20 first",
-    "CONVERTER_PATH": "Converter path"
+    "CONVERTER_PATH": "Converter path",
+    "DISPLAY_INFO_DBC": "CreatureDisplayInfo.dbc path",
+    "ORPHANED_DISPLAY_ID": "Critical Orphaned Reference — DisplayID not in CreatureDisplayInfo.dbc",
+    "DISPLAY_ID_PRESENT": "DisplayID present in CreatureDisplayInfo.dbc"
   },
   "DASHBOARD": {
     "WELCOME": "Bienvenido a Keira3",

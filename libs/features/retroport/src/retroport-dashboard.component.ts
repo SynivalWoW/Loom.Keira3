@@ -3,7 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { ToastrService } from 'ngx-toastr';
 
-import { RealmEnvironment, RetroportDbalService, RetroportPayload } from '@keira/shared/db-layer';
+import {
+  DisplayIdStatus,
+  DisplayIdValidatorService,
+  RealmEnvironment,
+  RetroportDbalService,
+  RetroportPayload,
+} from '@keira/shared/db-layer';
 import { FileDialogService } from './file-dialog.service';
 import { OrchestratorBridgeService, OrchestratorResult } from './orchestrator-bridge.service';
 
@@ -30,6 +36,7 @@ export class RetroportDashboardComponent {
   protected readonly deploymentLog = signal<string[]>([]);
   protected readonly running = signal<boolean>(false);
   protected readonly metadata = signal<OrchestratorResult | null>(null);
+  protected readonly displayIdStatus = signal<DisplayIdStatus>('unvalidated');
 
   protected targetFolder = '';
   protected orchestratorPath = DEFAULT_ORCHESTRATOR_PATH;
@@ -39,6 +46,7 @@ export class RetroportDashboardComponent {
   protected payload: RetroportPayload = { displayId: 0 };
 
   private readonly dbal = inject(RetroportDbalService);
+  protected readonly displayIdValidator = inject(DisplayIdValidatorService);
   private readonly orchestrator = inject(OrchestratorBridgeService);
   private readonly fileDialog = inject(FileDialogService);
   private readonly toastr = inject(ToastrService);
@@ -60,6 +68,8 @@ export class RetroportDashboardComponent {
     const item = this.dbal.buildItemTemplate(this.payload, this.realm());
     const shapeshift = this.dbal.insertShapeshiftModel(this.payload, this.realm());
     this.generatedSql.set(`${item}\n${shapeshift}`);
+    // §3.C orphaned-reference check: is this DisplayID actually in CreatureDisplayInfo.dbc?
+    this.displayIdStatus.set(this.displayIdValidator.validate(this.payload.displayId));
   }
 
   protected appendLog(line: string): void {

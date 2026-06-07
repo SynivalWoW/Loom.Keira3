@@ -46,6 +46,20 @@
     <label for="displayId">{{ 'RETROPORT.DISPLAY_ID' | translate }}</label>
     <input id="displayId" type="number" [(ngModel)]="payload.displayId" />
 
+    <label for="displayInfoDbc">{{ 'RETROPORT.DISPLAY_INFO_DBC' | translate }}</label>
+    <input
+      id="displayInfoDbc"
+      type="text"
+      [ngModel]="displayIdValidator.creatureDisplayInfoDbcPath()"
+      (ngModelChange)="displayIdValidator.creatureDisplayInfoDbcPath.set($event)"
+      placeholder="(path to CreatureDisplayInfo.dbc)"
+    />
+    @if (displayIdStatus() === 'orphaned') {
+      <span id="orphaned-warning" class="warn">⚠ {{ 'RETROPORT.ORPHANED_DISPLAY_ID' | translate }}</span>
+    } @else if (displayIdStatus() === 'present') {
+      <span id="displayid-present" class="ok">✓ {{ 'RETROPORT.DISPLAY_ID_PRESENT' | translate }}</span>
+    }
+
     <label for="genDbc"> <input id="genDbc" type="checkbox" [(ngModel)]="genDbc" /> {{ 'RETROPORT.GEN_DBC' | translate }} </label>
   </div>
 

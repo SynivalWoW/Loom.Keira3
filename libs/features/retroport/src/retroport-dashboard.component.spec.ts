@@ -1,7 +1,7 @@
-import { provideZonelessChangeDetection } from '@angular/core';
+import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { RealmEnvironment, RetroportDbalService } from '@keira/shared/db-layer';
+import { DisplayIdValidatorService, RealmEnvironment, RetroportDbalService } from '@keira/shared/db-layer';
 import { PageObject, TranslateTestingModule } from '@keira/shared/test-utils';
 import { ToastrService } from 'ngx-toastr';
 import { vi } from 'vitest';
@@ -45,6 +45,7 @@ describe('RetroportDashboardComponent', () => {
   const orchestrator = { runForModel: vi.fn() };
   const fileDialog = { pickDirectory: vi.fn() };
   const toastr = { error: vi.fn() };
+  const displayIdValidator = { creatureDisplayInfoDbcPath: signal(''), validate: vi.fn() };
 
   beforeEach(() => {
     dbal.buildItemTemplate.mockReset().mockReturnValue('ITEM_SQL');
@@ -52,6 +53,7 @@ describe('RetroportDashboardComponent', () => {
     orchestrator.runForModel.mockReset();
     fileDialog.pickDirectory.mockReset();
     toastr.error.mockReset();
+    displayIdValidator.validate.mockReset().mockReturnValue('unvalidated');
 
     TestBed.configureTestingModule({
       imports: [RetroportDashboardComponent, TranslateTestingModule],
@@ -61,6 +63,7 @@ describe('RetroportDashboardComponent', () => {
         { provide: RetroportDbalService, useValue: dbal },
         { provide: OrchestratorBridgeService, useValue: orchestrator },
         { provide: FileDialogService, useValue: fileDialog },
+        { provide: DisplayIdValidatorService, useValue: displayIdValidator },
         { provide: ToastrService, useValue: toastr },
       ],
     }).compileComponents();
@@ -118,6 +121,21 @@ describe('RetroportDashboardComponent', () => {
     await page.whenStable();
 
     expect(component.targetFolder).toBe('');
+  });
+
+  it('flags a Critical Orphaned Reference when the DisplayID is not in CreatureDisplayInfo.dbc', () => {
+    displayIdValidator.validate.mockReturnValue('orphaned');
+    const { page } = setup();
+    page.clickElement(page.generateBtn);
+    expect(page.query<HTMLElement>('#orphaned-warning')).toBeTruthy();
+    expect(page.query<HTMLElement>('#displayid-present', false)).toBeFalsy();
+  });
+
+  it('confirms when the DisplayID is present in CreatureDisplayInfo.dbc', () => {
+    displayIdValidator.validate.mockReturnValue('present');
+    const { page } = setup();
+    page.clickElement(page.generateBtn);
+    expect(page.query<HTMLElement>('#displayid-present')).toBeTruthy();
   });
 
   it('warns and does nothing when no target folder is given', async () => {
