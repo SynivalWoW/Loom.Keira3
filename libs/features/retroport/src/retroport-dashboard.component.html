@@ -38,6 +38,8 @@
 
     <label for="displayId">{{ 'RETROPORT.DISPLAY_ID' | translate }}</label>
     <input id="displayId" type="number" [(ngModel)]="payload.displayId" />
+
+    <label for="genDbc"> <input id="genDbc" type="checkbox" [(ngModel)]="genDbc" /> {{ 'RETROPORT.GEN_DBC' | translate }} </label>
   </div>
 
   <div class="actions">

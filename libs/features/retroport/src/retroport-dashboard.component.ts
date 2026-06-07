@@ -33,6 +33,7 @@ export class RetroportDashboardComponent {
 
   protected targetFolder = '';
   protected orchestratorPath = DEFAULT_ORCHESTRATOR_PATH;
+  protected genDbc = false;
   protected payload: RetroportPayload = { displayId: 0 };
 
   private readonly dbal = inject(RetroportDbalService);
@@ -74,7 +75,10 @@ export class RetroportDashboardComponent {
     this.running.set(true);
     try {
       const mapping = { internal_name: this.payload.itemName ?? '', target_folder: '' };
-      const result = await this.orchestrator.runForModel(this.orchestratorPath, folder, mapping, (line) => this.appendLog(line));
+      const result = await this.orchestrator.runForModel(this.orchestratorPath, folder, mapping, (line) => this.appendLog(line), {
+        genDbc: this.genDbc,
+        displayId: this.payload.displayId > 0 ? this.payload.displayId : undefined,
+      });
       this.metadata.set(result);
 
       // Drive the minted display id straight into the SQL payload.

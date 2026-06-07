@@ -202,7 +202,8 @@
     "TARGET_FOLDER": "To Convert folder",
     "ORCHESTRATOR_PATH": "Orchestrator script path",
     "ITEM_NAME": "Item name",
-    "BROWSE": "Browse…"
+    "BROWSE": "Browse…",
+    "GEN_DBC": "Generate CreatureDisplayInfo.dbc"
   },
   "DASHBOARD": {
     "WELCOME": "Bienvenido a Keira3",

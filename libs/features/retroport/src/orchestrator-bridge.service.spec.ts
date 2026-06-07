@@ -85,6 +85,19 @@ describe('OrchestratorBridgeService', () => {
     expect(spawn).toHaveBeenCalledWith('python', ['/ml/loom_orchestrator.py', '/out/Druid/Cat', JSON.stringify(mapping)]);
   });
 
+  it('runForModel appends --gen-dbc and --display-id when requested', async () => {
+    const fake = makeFakeChild();
+    spawn.mockReturnValue(fake.child);
+
+    const mapping = { internal_name: 'Cat' };
+    const promise = service.runForModel('s.py', '/out', mapping, () => undefined, { genDbc: true, displayId: 80040 });
+    fake.emitStdout('{"status":"ok"}');
+    fake.emitClose(0);
+
+    await promise;
+    expect(spawn).toHaveBeenCalledWith('python', ['s.py', '/out', JSON.stringify(mapping), '--gen-dbc', '--display-id', '80040']);
+  });
+
   it('prefixes streamed stderr', async () => {
     const fake = makeFakeChild();
     spawn.mockReturnValue(fake.child);

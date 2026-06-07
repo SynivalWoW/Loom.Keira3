@@ -158,6 +158,7 @@ describe('RetroportDashboardComponent', () => {
       'To Convert/Druid/WindsaberCat',
       { internal_name: '', target_folder: '' },
       expect.any(Function),
+      { genDbc: false, displayId: undefined },
     );
     // display id flowed from the orchestrator into the SQL payload
     expect(component.payload.displayId).toBe(1234567);
@@ -190,6 +191,25 @@ describe('RetroportDashboardComponent', () => {
     expect(page.metadata.innerHTML).toContain('CatEyes.blp'); // missing-texture warning rendered
     expect(page.metadata.innerHTML).toContain('over limit'); // vertex_safe=false branch
     expect(page.generatedSql.innerHTML).toContain('ITEM_SQL');
+  });
+
+  it('passes --gen-dbc and the entered display id when DBC generation is enabled', async () => {
+    orchestrator.runForModel.mockResolvedValue({ status: 'ok' });
+
+    const { page } = setup();
+    page.setInputValueById('targetFolder', 'To Convert/Druid/Cat');
+    page.setInputValueById('displayId', 80040);
+    page.clickElement(page.query<HTMLInputElement>('#genDbc')); // tick the DBC checkbox
+    page.clickElement(page.runBtn);
+    await page.whenStable();
+
+    expect(orchestrator.runForModel).toHaveBeenCalledWith(
+      'loom_orchestrator.py',
+      'To Convert/Druid/Cat',
+      { internal_name: '', target_folder: '' },
+      expect.any(Function),
+      { genDbc: true, displayId: 80040 },
+    );
   });
 
   it('shows a toast and logs the error when the orchestrator fails', async () => {

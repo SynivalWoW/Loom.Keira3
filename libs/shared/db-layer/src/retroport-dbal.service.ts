@@ -10,7 +10,7 @@ import {
 } from '@keira/shared/acore-world-model';
 
 import { MysqlQueryService } from './query/mysql-query.service';
-import { RealmEnvironment, REALM_CHARACTERS_DB, REALM_WORLD_DB } from './realm-environment';
+import { RealmEnvironment, REALM_WORLD_DB } from './realm-environment';
 
 /** The payload produced by a successful retroport: a minted display id + model metadata. */
 export interface RetroportPayload {
@@ -66,7 +66,8 @@ export class RetroportDbalService {
       [row],
       PLAYER_SHAPESHIFT_MODEL_ID,
     );
-    return this.qualify(sql, PLAYER_SHAPESHIFT_MODEL_TABLE, REALM_CHARACTERS_DB[realm]);
+    // player_shapeshift_model is a WORLD-DB table (per the CoffingQuest audit), like item_template.
+    return this.qualify(sql, PLAYER_SHAPESHIFT_MODEL_TABLE, REALM_WORLD_DB[realm]);
   }
 
   /**

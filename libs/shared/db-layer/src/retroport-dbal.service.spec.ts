@@ -51,21 +51,21 @@ describe('RetroportDbalService', () => {
   });
 
   describe('insertShapeshiftModel', () => {
-    it('targets acore_characters for LIVE and qualifies BOTH statements', () => {
+    it('targets the acore_world DB for LIVE and qualifies BOTH statements', () => {
       const sql = service.insertShapeshiftModel(
         { displayId: 80040, shapeshiftId: 115, raceId: 0, customizationId: 255, genderId: 2 },
         RealmEnvironment.LIVE,
       );
 
-      expect(sql).toContain('`acore_characters`.`player_shapeshift_model`');
-      expect(countOccurrences(sql, /`acore_characters`\.`player_shapeshift_model`/g)).toBe(2);
+      expect(sql).toContain('`acore_world`.`player_shapeshift_model`');
+      expect(countOccurrences(sql, /`acore_world`\.`player_shapeshift_model`/g)).toBe(2);
       expect(sql).toContain('80040');
       expect(sql).toContain('115');
     });
 
-    it('targets acoreptr_characters for PTR and defaults the optional shapeshift fields', () => {
+    it('targets acoreptr_world for PTR and defaults the optional shapeshift fields', () => {
       const sql = service.insertShapeshiftModel({ displayId: 7 }, RealmEnvironment.PTR);
-      expect(sql).toContain('`acoreptr_characters`.`player_shapeshift_model`');
+      expect(sql).toContain('`acoreptr_world`.`player_shapeshift_model`');
       expect(sql).toContain('7');
     });
   });

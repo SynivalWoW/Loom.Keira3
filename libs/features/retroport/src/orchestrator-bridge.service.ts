@@ -78,14 +78,22 @@ export class OrchestratorBridgeService {
 
   /**
    * Run the orchestrator over one `To Convert/<Category>/<ModelName>/` folder. Mirrors the CLI
-   * contract `python loom_orchestrator.py <target_dir> <mapping_json>`.
+   * contract `python loom_orchestrator.py <target_dir> <mapping_json> [--gen-dbc] [--display-id N]`.
    */
   runForModel(
     scriptPath: string,
     targetDir: string,
     mapping: Record<string, unknown>,
     onLog: (line: string) => void,
+    options: { genDbc?: boolean; displayId?: number } = {},
   ): Promise<OrchestratorResult> {
-    return this.runOrchestrator([scriptPath, targetDir, JSON.stringify(mapping)], onLog);
+    const args = [scriptPath, targetDir, JSON.stringify(mapping)];
+    if (options.genDbc) {
+      args.push('--gen-dbc');
+    }
+    if (typeof options.displayId === 'number') {
+      args.push('--display-id', String(options.displayId));
+    }
+    return this.runOrchestrator(args, onLog);
   }
 }
