@@ -6,6 +6,7 @@ import { PageObject, TranslateTestingModule } from '@keira/shared/test-utils';
 import { ToastrService } from 'ngx-toastr';
 import { vi } from 'vitest';
 
+import { FileDialogService } from './file-dialog.service';
 import { OrchestratorBridgeService } from './orchestrator-bridge.service';
 import { RetroportDashboardComponent } from './retroport-dashboard.component';
 
@@ -22,6 +23,12 @@ class RetroportDashboardPage extends PageObject<RetroportDashboardComponent> {
   get runBtn(): HTMLButtonElement {
     return this.query<HTMLButtonElement>('#run-orchestrator-btn');
   }
+  get browseBtn(): HTMLButtonElement {
+    return this.query<HTMLButtonElement>('#browse-btn');
+  }
+  get targetFolderInput(): HTMLInputElement {
+    return this.query<HTMLInputElement>('#targetFolder');
+  }
   get generatedSql(): HTMLPreElement {
     return this.query<HTMLPreElement>('#generated-sql');
   }
@@ -36,12 +43,14 @@ class RetroportDashboardPage extends PageObject<RetroportDashboardComponent> {
 describe('RetroportDashboardComponent', () => {
   const dbal = { buildItemTemplate: vi.fn(), insertShapeshiftModel: vi.fn() };
   const orchestrator = { runForModel: vi.fn() };
+  const fileDialog = { pickDirectory: vi.fn() };
   const toastr = { error: vi.fn() };
 
   beforeEach(() => {
     dbal.buildItemTemplate.mockReset().mockReturnValue('ITEM_SQL');
     dbal.insertShapeshiftModel.mockReset().mockReturnValue('SHAPE_SQL');
     orchestrator.runForModel.mockReset();
+    fileDialog.pickDirectory.mockReset();
     toastr.error.mockReset();
 
     TestBed.configureTestingModule({
@@ -51,6 +60,7 @@ describe('RetroportDashboardComponent', () => {
         provideNoopAnimations(),
         { provide: RetroportDbalService, useValue: dbal },
         { provide: OrchestratorBridgeService, useValue: orchestrator },
+        { provide: FileDialogService, useValue: fileDialog },
         { provide: ToastrService, useValue: toastr },
       ],
     }).compileComponents();
@@ -90,6 +100,26 @@ describe('RetroportDashboardComponent', () => {
     expect(dbal.buildItemTemplate).toHaveBeenLastCalledWith(component.payload, RealmEnvironment.PTR);
   });
 
+  it('fills the target folder from the native picker', async () => {
+    fileDialog.pickDirectory.mockResolvedValue('/abs/To Convert/Druid/WindsaberCat');
+    const { page, component } = setup();
+    page.clickElement(page.browseBtn);
+    await page.whenStable();
+    page.detectChanges();
+
+    expect(fileDialog.pickDirectory).toHaveBeenCalled();
+    expect(component.targetFolder).toBe('/abs/To Convert/Druid/WindsaberCat');
+  });
+
+  it('leaves the target folder unchanged when the picker is cancelled', async () => {
+    fileDialog.pickDirectory.mockResolvedValue(null);
+    const { page, component } = setup();
+    page.clickElement(page.browseBtn);
+    await page.whenStable();
+
+    expect(component.targetFolder).toBe('');
+  });
+
   it('warns and does nothing when no target folder is given', async () => {
     const { page } = setup();
     page.clickElement(page.runBtn);
@@ -107,8 +137,13 @@ describe('RetroportDashboardComponent', () => {
         internal_name: 'WindsaberCat',
         display_id: 1234567,
         nViews: 4,
+        skin_count: 4,
         combiner_array: [0, 1, 2, 3],
+        combiner_action: 'repaired',
+        vertex_count: 9000,
+        vertex_safe: true,
         emitter_safe: true,
+        valid: true,
       });
     });
 
@@ -134,8 +169,15 @@ describe('RetroportDashboardComponent', () => {
     expect(component.running()).toBe(false);
   });
 
-  it('handles a result without a display id (falls back to the folder name in the log)', async () => {
-    orchestrator.runForModel.mockResolvedValue({ status: 'ok', nViews: 2, emitter_safe: false });
+  it('handles a result without a display id and surfaces a missing-texture warning', async () => {
+    orchestrator.runForModel.mockResolvedValue({
+      status: 'ok',
+      nViews: 2,
+      vertex_safe: false,
+      emitter_safe: false,
+      missing_textures: ['CatEyes.blp'],
+      valid: false,
+    });
 
     const { page, component } = setup();
     page.setInputValueById('targetFolder', 'To Convert/Mage/ArcaneOrb');
@@ -145,6 +187,8 @@ describe('RetroportDashboardComponent', () => {
 
     expect(component.payload.displayId).toBe(0); // unchanged — no display id returned
     expect(page.log.innerHTML).toContain('Repaired To Convert/Mage/ArcaneOrb');
+    expect(page.metadata.innerHTML).toContain('CatEyes.blp'); // missing-texture warning rendered
+    expect(page.metadata.innerHTML).toContain('over limit'); // vertex_safe=false branch
     expect(page.generatedSql.innerHTML).toContain('ITEM_SQL');
   });
 

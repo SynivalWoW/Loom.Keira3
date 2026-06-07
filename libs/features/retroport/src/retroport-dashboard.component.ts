@@ -4,6 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ToastrService } from 'ngx-toastr';
 
 import { RealmEnvironment, RetroportDbalService, RetroportPayload } from '@keira/shared/db-layer';
+import { FileDialogService } from './file-dialog.service';
 import { OrchestratorBridgeService, OrchestratorResult } from './orchestrator-bridge.service';
 
 const DEFAULT_ORCHESTRATOR_PATH = 'loom_orchestrator.py';
@@ -36,11 +37,20 @@ export class RetroportDashboardComponent {
 
   private readonly dbal = inject(RetroportDbalService);
   private readonly orchestrator = inject(OrchestratorBridgeService);
+  private readonly fileDialog = inject(FileDialogService);
   private readonly toastr = inject(ToastrService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected setRealm(realm: RealmEnvironment): void {
     this.realm.set(realm);
+  }
+
+  protected async browse(): Promise<void> {
+    const dir = await this.fileDialog.pickDirectory();
+    if (dir) {
+      this.targetFolder = dir;
+      this.changeDetectorRef.markForCheck();
+    }
   }
 
   protected generateSql(): void {

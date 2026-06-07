@@ -25,7 +25,10 @@
 
   <div class="payload-inputs">
     <label for="targetFolder">{{ 'RETROPORT.TARGET_FOLDER' | translate }}</label>
-    <input id="targetFolder" type="text" [(ngModel)]="targetFolder" placeholder="To Convert/Druid/WindsaberCat" />
+    <span class="folder-row">
+      <input id="targetFolder" type="text" [(ngModel)]="targetFolder" placeholder="To Convert/Druid/WindsaberCat" />
+      <button id="browse-btn" type="button" class="btn" (click)="browse()">{{ 'RETROPORT.BROWSE' | translate }}</button>
+    </span>
 
     <label for="orchestratorPath">{{ 'RETROPORT.ORCHESTRATOR_PATH' | translate }}</label>
     <input id="orchestratorPath" type="text" [(ngModel)]="orchestratorPath" />
@@ -47,11 +50,16 @@
   </div>
 
   @if (metadata(); as meta) {
-    <div id="metadata" class="metadata">
-      <span>nViews: {{ meta.nViews }}</span>
-      <span>combiner: [{{ meta.combiner_array }}]</span>
+    <div id="metadata" class="metadata" [class.invalid]="meta.valid === false">
+      <span>nViews: {{ meta.nViews }} ({{ meta.skin_count }} skins)</span>
+      <span>combiner: [{{ meta.combiner_array }}] ({{ meta.combiner_action }})</span>
+      <span>vertices: {{ meta.vertex_count }} {{ meta.vertex_safe ? 'OK' : '⚠ over limit' }}</span>
       <span>emitter safe: {{ meta.emitter_safe }}</span>
       <span>display id: {{ meta.display_id }}</span>
+      @if (meta.missing_textures?.length) {
+        <span class="warn">missing textures: {{ meta.missing_textures }}</span>
+      }
+      <span>valid: {{ meta.valid }}</span>
     </div>
   }
 

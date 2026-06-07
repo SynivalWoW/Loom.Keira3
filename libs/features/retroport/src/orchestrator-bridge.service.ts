@@ -9,12 +9,19 @@ export interface OrchestratorResult {
   entry?: string;
   display_id?: number;
   nViews?: number;
+  skin_count?: number;
   global_flags?: number;
   combiner_array?: number[];
   combiner_action?: string;
   emitter_safe?: boolean;
   particles?: number;
   ribbons?: number;
+  vertex_count?: number;
+  vertex_safe?: boolean;
+  missing_textures?: string[];
+  anim_count?: number;
+  is_md21?: boolean;
+  valid?: boolean;
   [key: string]: unknown;
 }
 

@@ -1,4 +1,4 @@
-import { BrowserWindow, Menu, MenuItem, app, nativeImage, shell } from 'electron';
+import { BrowserWindow, Menu, MenuItem, app, dialog, ipcMain, nativeImage, shell } from 'electron';
 import * as settings from 'electron-settings';
 import * as path from 'path';
 import * as url from 'url';
@@ -80,6 +80,12 @@ try {
   // Some APIs can only be used after this event occurs.
   app.on('ready', function () {
     createWindow();
+
+    // Native folder picker for the retroport dashboard (renderer invokes 'dialog:openDirectory').
+    ipcMain.handle('dialog:openDirectory', async () => {
+      const result = await dialog.showOpenDialog(win, { properties: ['openDirectory'] });
+      return result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0];
+    });
 
     // Navigation Top Bar
     const navMenu: Electron.MenuItemConstructorOptions[] = [

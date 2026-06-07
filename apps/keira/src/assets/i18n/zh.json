@@ -201,7 +201,8 @@
     "DISPLAY_ID": "Display ID",
     "TARGET_FOLDER": "To Convert folder",
     "ORCHESTRATOR_PATH": "Orchestrator script path",
-    "ITEM_NAME": "Item name"
+    "ITEM_NAME": "Item name",
+    "BROWSE": "Browse…"
   },
   "DASHBOARD": {
     "WELCOME": "欢迎使用Keira3",

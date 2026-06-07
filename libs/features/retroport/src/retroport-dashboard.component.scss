@@ -29,6 +29,28 @@
     word-break: break-word;
   }
 
+  .folder-row {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+
+    &.invalid {
+      color: #b00020;
+    }
+
+    .warn {
+      color: #b00020;
+      font-weight: bold;
+    }
+  }
+
   .deployment-log {
     list-style: none;
     padding-left: 0;
