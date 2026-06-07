@@ -187,7 +187,18 @@
       "SELECT_TRAINER": "Тренер",
       "TRAINER_SPELL": "Заклинание тренера"
     },
-    "UNUSED_GUID_SEARCH": "Неиспользуемые GUID"
+    "UNUSED_GUID_SEARCH": "Неиспользуемые GUID",
+    "RETROPORT": "Retroport"
+  },
+  "RETROPORT": {
+    "TITLE": "Retroport DBAL",
+    "REALM": "Target realm",
+    "LIVE": "LIVE",
+    "PTR": "PTR",
+    "GENERATE_SQL": "Generate SQL",
+    "RUN_ORCHESTRATOR": "Run Orchestrator",
+    "DEPLOYMENT_LOG": "Deployment log",
+    "DISPLAY_ID": "Display ID"
   },
   "DASHBOARD": {
     "WELCOME": "Добро пожаловать в Keira3",

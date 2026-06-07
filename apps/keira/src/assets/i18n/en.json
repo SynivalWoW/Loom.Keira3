@@ -187,7 +187,18 @@
       "SELECT_TRAINER": "Trainer",
       "TRAINER_SPELL": "Trainer Spell"
     },
-    "UNUSED_GUID_SEARCH": "Unused GUIDs"
+    "UNUSED_GUID_SEARCH": "Unused GUIDs",
+    "RETROPORT": "Retroport"
+  },
+  "RETROPORT": {
+    "TITLE": "Retroport DBAL",
+    "REALM": "Target realm",
+    "LIVE": "LIVE",
+    "PTR": "PTR",
+    "GENERATE_SQL": "Generate SQL",
+    "RUN_ORCHESTRATOR": "Run Orchestrator",
+    "DEPLOYMENT_LOG": "Deployment log",
+    "DISPLAY_ID": "Display ID"
   },
   "DASHBOARD": {
     "WELCOME": "Welcome to Keira3",

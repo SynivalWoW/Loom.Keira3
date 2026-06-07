@@ -1,0 +1,48 @@
+<div class="retroport-dashboard">
+  <h3>{{ 'RETROPORT.TITLE' | translate }}</h3>
+
+  <div class="realm-toggle">
+    <span class="realm-label">{{ 'RETROPORT.REALM' | translate }}:</span>
+    <button
+      id="realm-live"
+      type="button"
+      class="btn"
+      [class.active]="realm() === RealmEnvironment.LIVE"
+      (click)="setRealm(RealmEnvironment.LIVE)"
+    >
+      {{ 'RETROPORT.LIVE' | translate }}
+    </button>
+    <button
+      id="realm-ptr"
+      type="button"
+      class="btn"
+      [class.active]="realm() === RealmEnvironment.PTR"
+      (click)="setRealm(RealmEnvironment.PTR)"
+    >
+      {{ 'RETROPORT.PTR' | translate }}
+    </button>
+  </div>
+
+  <div class="payload-inputs">
+    <label for="displayId">{{ 'RETROPORT.DISPLAY_ID' | translate }}</label>
+    <input id="displayId" type="number" [(ngModel)]="payload.displayId" />
+  </div>
+
+  <div class="actions">
+    <button id="generate-sql-btn" type="button" class="btn" (click)="generateSql()">
+      {{ 'RETROPORT.GENERATE_SQL' | translate }}
+    </button>
+    <button id="run-orchestrator-btn" type="button" class="btn" [disabled]="running()" (click)="runOrchestrator()">
+      {{ 'RETROPORT.RUN_ORCHESTRATOR' | translate }}
+    </button>
+  </div>
+
+  <pre id="generated-sql">{{ generatedSql() }}</pre>
+
+  <h4>{{ 'RETROPORT.DEPLOYMENT_LOG' | translate }}</h4>
+  <ul class="deployment-log">
+    @for (line of deploymentLog(); track $index) {
+      <li>{{ line }}</li>
+    }
+  </ul>
+</div>

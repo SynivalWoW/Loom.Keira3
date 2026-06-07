@@ -94,6 +94,7 @@ import {
   SelectAcoreStringComponent,
 } from '@keira/features/texts';
 import { GameTeleComponent, GameTeleHandlerService, SelectGameTeleComponent } from '@keira/features/game-tele';
+import { RetroportDashboardComponent } from '@keira/features/retroport';
 import { SelectTrainerComponent, TrainerComponent, TrainerHandlerService, TrainerSpellComponent } from '@keira/features/trainer';
 import { UnusedGuidSearchComponent } from '@keira/features/unused-guid-search';
 
@@ -105,6 +106,10 @@ export const KEIRA_ROUTES: Routes = [
   {
     path: 'sql-editor',
     component: SqlEditorComponent,
+  },
+  {
+    path: 'retroport',
+    component: RetroportDashboardComponent,
   },
   {
     path: 'creature',

@@ -33,6 +33,7 @@
       "@keira/features/item": ["libs/features/item/src/index.ts"],
       "@keira/features/other-loots": ["libs/features/other-loots/src/index.ts"],
       "@keira/features/quest": ["libs/features/quest/src/index.ts"],
+      "@keira/features/retroport": ["libs/features/retroport/src/index.ts"],
       "@keira/features/smart-scripts": ["libs/features/smart-scripts/src/index.ts"],
       "@keira/features/spell": ["libs/features/spell/src/index.ts"],
       "@keira/features/sql-editor": ["libs/features/sql-editor/src/index.ts"],

@@ -48,6 +48,7 @@ export * from './entities/milling-loot-template.type';
 export * from './entities/npc-text.type';
 export * from './entities/npc-vendor.type';
 export * from './entities/page-text.type';
+export * from './entities/player-shapeshift-model.type';
 export * from './entities/trainer.type';
 export * from './entities/trainer-locale.type';
 export * from './entities/trainer-spell.type';
