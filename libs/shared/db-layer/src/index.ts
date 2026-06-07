@@ -3,6 +3,8 @@ export * from './mysql.service';
 export * from './query/base-query.service';
 export * from './query/mysql-query.service';
 export * from './query/sqlite-query.service';
+export * from './dbc-definitions';
+export * from './dbc-file.service';
 export * from './dbc-reader.service';
 export * from './display-id-validator.service';
 export * from './realm-environment';

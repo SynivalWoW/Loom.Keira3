@@ -1,0 +1,12 @@
+{
+  "name": "keira-features-dbc-editor",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/features/dbc-editor/src",
+  "prefix": "keira",
+  "tags": ["scope:features"],
+  "projectType": "library",
+  "targets": {
+    "test": { "executor": "nx:run-commands", "options": { "command": "npx vitest run", "cwd": "{projectRoot}" } },
+    "lint": { "executor": "@nx/eslint:lint" }
+  }
+}

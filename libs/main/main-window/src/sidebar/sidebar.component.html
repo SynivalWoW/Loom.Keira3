@@ -816,6 +816,12 @@
             </a>
           </li>
 
+          <li>
+            <a id="dbc-editor-toggle" href="#" [routerLink]="'dbc-editor'">
+              <i class="fa fa-table"></i> {{ 'SIDEBAR.DBC_EDITOR' | translate }}
+            </a>
+          </li>
+
           <li class="sidebar-dropdown" [class.active]="menuStates['modelInfo'] === 'down'">
             <a (click)="toggleState('modelInfo')">
               <i class="fa fa-paw"></i>

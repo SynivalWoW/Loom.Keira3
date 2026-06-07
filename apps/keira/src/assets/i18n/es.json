@@ -198,7 +198,8 @@
       "TITLE": "Shapeshift Models",
       "SEARCH_SHAPESHIFT": "Search Forms",
       "EDIT_SHAPESHIFT": "Form Editor"
-    }
+    },
+    "DBC_EDITOR": "DBC Editor"
   },
   "RETROPORT": {
     "TITLE": "Retroport DBAL",
@@ -980,5 +981,13 @@
   },
   "CREATURE_MODEL_INFO": {
     "EDITOR": "Creature Model Info Editor"
+  },
+  "DBC_EDITOR": {
+    "TITLE": "DBC Editor",
+    "TABLE": "Table",
+    "PATH": "DBC file path",
+    "LOAD": "Load",
+    "SAVE": "Save",
+    "ADD_ROW": "Add Row"
   }
 }

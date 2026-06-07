@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { DashboardComponent } from '@keira/features/dashboard';
+import { DbcEditorComponent } from '@keira/features/dbc-editor';
 
 import { ConditionsComponent, ConditionsHandlerService, SelectConditionsComponent } from '@keira/features/conditions';
 import {
@@ -112,6 +113,10 @@ export const KEIRA_ROUTES: Routes = [
   {
     path: 'retroport',
     component: RetroportDashboardComponent,
+  },
+  {
+    path: 'dbc-editor',
+    component: DbcEditorComponent,
   },
   {
     path: 'model-info',

@@ -1,0 +1,57 @@
+<div class="container-fluid dbc-editor">
+  <div class="content-block">
+    <h3>{{ 'DBC_EDITOR.TITLE' | translate }}</h3>
+    <div class="controls">
+      <label for="dbcTable">{{ 'DBC_EDITOR.TABLE' | translate }}</label>
+      <select id="dbcTable" [(ngModel)]="table">
+        @for (t of tables; track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
+
+      <label for="dbcPath">{{ 'DBC_EDITOR.PATH' | translate }}</label>
+      <input id="dbcPath" type="text" [(ngModel)]="dbcPath" placeholder="(path to .dbc)" />
+
+      <button id="load-btn" type="button" class="btn" (click)="load()">{{ 'DBC_EDITOR.LOAD' | translate }}</button>
+      <button id="save-btn" type="button" class="btn" (click)="save()">{{ 'DBC_EDITOR.SAVE' | translate }}</button>
+      <button id="add-row-btn" type="button" class="btn" (click)="addRow()">{{ 'DBC_EDITOR.ADD_ROW' | translate }}</button>
+    </div>
+    <p id="dbc-status" class="status">{{ status() }}</p>
+  </div>
+
+  @if (fields().length) {
+    <div class="content-block dbc-grid-wrap">
+      <table class="table table-sm table-striped dbc-grid">
+        <thead>
+          <tr>
+            <th>#</th>
+            @for (f of fields(); track f.name) {
+              <th>{{ f.name }}</th>
+            }
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track $index) {
+            <tr>
+              <td>{{ $index }}</td>
+              @for (f of fields(); track f.name) {
+                <td>
+                  <input
+                    class="form-control form-control-sm dbc-cell"
+                    [attr.aria-label]="f.name"
+                    [ngModel]="row[f.name]"
+                    (ngModelChange)="setCell($index, f.name, $event)"
+                  />
+                </td>
+              }
+              <td>
+                <button type="button" class="btn btn-sm btn-danger delete-row-btn" (click)="deleteRow($index)">×</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
