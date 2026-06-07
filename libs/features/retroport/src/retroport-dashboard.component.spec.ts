@@ -158,7 +158,7 @@ describe('RetroportDashboardComponent', () => {
       'To Convert/Druid/WindsaberCat',
       { internal_name: '', target_folder: '' },
       expect.any(Function),
-      { genDbc: false, displayId: undefined },
+      { genDbc: false, displayId: undefined, convert: false, converterPath: undefined },
     );
     // display id flowed from the orchestrator into the SQL payload
     expect(component.payload.displayId).toBe(1234567);
@@ -208,7 +208,26 @@ describe('RetroportDashboardComponent', () => {
       'To Convert/Druid/Cat',
       { internal_name: '', target_folder: '' },
       expect.any(Function),
-      { genDbc: true, displayId: 80040 },
+      { genDbc: true, displayId: 80040, convert: false, converterPath: undefined },
+    );
+  });
+
+  it('passes --convert and a converter path when "convert first" is enabled', async () => {
+    orchestrator.runForModel.mockResolvedValue({ status: 'ok' });
+
+    const { page } = setup();
+    page.setInputValueById('targetFolder', 'To Convert/Druid/Cat');
+    page.clickElement(page.query<HTMLInputElement>('#convertFirst'));
+    page.setInputValueById('converterPath', 'C:/WoTLK_MultiTool/MultiConverter_Console.exe');
+    page.clickElement(page.runBtn);
+    await page.whenStable();
+
+    expect(orchestrator.runForModel).toHaveBeenCalledWith(
+      'loom_orchestrator.py',
+      'To Convert/Druid/Cat',
+      { internal_name: '', target_folder: '' },
+      expect.any(Function),
+      { genDbc: false, displayId: undefined, convert: true, converterPath: 'C:/WoTLK_MultiTool/MultiConverter_Console.exe' },
     );
   });
 

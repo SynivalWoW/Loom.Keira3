@@ -33,6 +33,13 @@
     <label for="orchestratorPath">{{ 'RETROPORT.ORCHESTRATOR_PATH' | translate }}</label>
     <input id="orchestratorPath" type="text" [(ngModel)]="orchestratorPath" />
 
+    <label for="convertFirst">
+      <input id="convertFirst" type="checkbox" [(ngModel)]="convertFirst" /> {{ 'RETROPORT.CONVERT_FIRST' | translate }}
+    </label>
+
+    <label for="converterPath">{{ 'RETROPORT.CONVERTER_PATH' | translate }}</label>
+    <input id="converterPath" type="text" [(ngModel)]="converterPath" placeholder="(bundled MultiConverter_Console.exe)" />
+
     <label for="itemName">{{ 'RETROPORT.ITEM_NAME' | translate }}</label>
     <input id="itemName" type="text" [(ngModel)]="payload.itemName" />
 

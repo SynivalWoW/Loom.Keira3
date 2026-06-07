@@ -208,7 +208,9 @@
     "ORCHESTRATOR_PATH": "Orchestrator script path",
     "ITEM_NAME": "Item name",
     "BROWSE": "Browse…",
-    "GEN_DBC": "Generate CreatureDisplayInfo.dbc"
+    "GEN_DBC": "Generate CreatureDisplayInfo.dbc",
+    "CONVERT_FIRST": "Convert MD21→MD20 first",
+    "CONVERTER_PATH": "Converter path"
   },
   "DASHBOARD": {
     "WELCOME": "Добро пожаловать в Keira3",

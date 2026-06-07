@@ -98,6 +98,19 @@ describe('OrchestratorBridgeService', () => {
     expect(spawn).toHaveBeenCalledWith('python', ['s.py', '/out', JSON.stringify(mapping), '--gen-dbc', '--display-id', '80040']);
   });
 
+  it('runForModel appends --convert and --converter when requested', async () => {
+    const fake = makeFakeChild();
+    spawn.mockReturnValue(fake.child);
+
+    const mapping = { internal_name: 'Cat' };
+    const promise = service.runForModel('s.py', '/out', mapping, () => undefined, { convert: true, converterPath: '/c/conv.exe' });
+    fake.emitStdout('{"status":"ok"}');
+    fake.emitClose(0);
+
+    await promise;
+    expect(spawn).toHaveBeenCalledWith('python', ['s.py', '/out', JSON.stringify(mapping), '--convert', '--converter', '/c/conv.exe']);
+  });
+
   it('prefixes streamed stderr', async () => {
     const fake = makeFakeChild();
     spawn.mockReturnValue(fake.child);

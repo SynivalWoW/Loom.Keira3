@@ -33,6 +33,8 @@ export class RetroportDashboardComponent {
 
   protected targetFolder = '';
   protected orchestratorPath = DEFAULT_ORCHESTRATOR_PATH;
+  protected converterPath = '';
+  protected convertFirst = false;
   protected genDbc = false;
   protected payload: RetroportPayload = { displayId: 0 };
 
@@ -78,6 +80,8 @@ export class RetroportDashboardComponent {
       const result = await this.orchestrator.runForModel(this.orchestratorPath, folder, mapping, (line) => this.appendLog(line), {
         genDbc: this.genDbc,
         displayId: this.payload.displayId > 0 ? this.payload.displayId : undefined,
+        convert: this.convertFirst,
+        converterPath: this.converterPath || undefined,
       });
       this.metadata.set(result);
 

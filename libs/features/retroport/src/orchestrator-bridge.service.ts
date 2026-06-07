@@ -85,7 +85,7 @@ export class OrchestratorBridgeService {
     targetDir: string,
     mapping: Record<string, unknown>,
     onLog: (line: string) => void,
-    options: { genDbc?: boolean; displayId?: number } = {},
+    options: { genDbc?: boolean; displayId?: number; convert?: boolean; converterPath?: string } = {},
   ): Promise<OrchestratorResult> {
     const args = [scriptPath, targetDir, JSON.stringify(mapping)];
     if (options.genDbc) {
@@ -93,6 +93,12 @@ export class OrchestratorBridgeService {
     }
     if (typeof options.displayId === 'number') {
       args.push('--display-id', String(options.displayId));
+    }
+    if (options.convert) {
+      args.push('--convert');
+    }
+    if (options.converterPath) {
+      args.push('--converter', options.converterPath);
     }
     return this.runOrchestrator(args, onLog);
   }
