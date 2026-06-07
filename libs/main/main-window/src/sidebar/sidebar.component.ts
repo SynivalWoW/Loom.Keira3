@@ -24,6 +24,7 @@ import {
 } from '@keira/features/texts';
 import { GameTeleHandlerService } from '@keira/features/game-tele';
 import { CreatureModelInfoHandlerService } from '@keira/features/model-info';
+import { ShapeshiftHandlerService } from '@keira/features/shapeshift';
 import { TrainerHandlerService } from '@keira/features/trainer';
 import { LocationService } from '@keira/shared/common-services';
 import { MysqlService } from '@keira/shared/db-layer';
@@ -51,6 +52,7 @@ interface MenuStats {
   gameTele: ToggleType;
   trainer: ToggleType;
   modelInfo: ToggleType;
+  shapeshift: ToggleType;
 }
 
 @Component({
@@ -90,6 +92,7 @@ export class SidebarComponent {
     gameTele: 'up',
     trainer: 'up',
     modelInfo: 'up',
+    shapeshift: 'up',
   };
   private readonly IMAGES_COUNT = 7;
   private readonly RANDOM_IMAGE = Math.floor(Math.random() * this.IMAGES_COUNT) + 1;
@@ -116,6 +119,7 @@ export class SidebarComponent {
   protected readonly gameTeleHandlerService = inject(GameTeleHandlerService);
   protected readonly trainerHandlerService = inject(TrainerHandlerService);
   protected readonly creatureModelInfoHandlerService = inject(CreatureModelInfoHandlerService);
+  protected readonly shapeshiftHandlerService = inject(ShapeshiftHandlerService);
   private readonly locationService = inject(LocationService);
 
   getSideBarState(): boolean {
@@ -154,6 +158,7 @@ export class SidebarComponent {
     this.menuStates.trainer = 'up';
     this.menuStates.gameTele = 'up';
     this.menuStates.modelInfo = 'up';
+    this.menuStates.shapeshift = 'up';
   }
 
   logout(): void {

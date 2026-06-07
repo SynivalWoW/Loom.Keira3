@@ -5,7 +5,10 @@ export const PLAYER_SHAPESHIFT_MODEL_TABLE = 'player_shapeshift_model';
 // AzerothCore forks name the primary key `ShapeshiftFormID`. The *_ID indirection keeps a
 // later rename to a single line.
 export const PLAYER_SHAPESHIFT_MODEL_ID = 'ShapeshiftID';
+export const PLAYER_SHAPESHIFT_MODEL_RACE = 'RaceID';
+export const PLAYER_SHAPESHIFT_MODEL_GENDER = 'GenderID';
 export const PLAYER_SHAPESHIFT_MODEL_SEARCH_FIELDS = ['ShapeshiftID', 'RaceID', 'DisplayID'];
+export const PLAYER_SHAPESHIFT_MODEL_CUSTOM_STARTING_ID = 1;
 
 export class PlayerShapeshiftModel extends TableRow {
   ShapeshiftID: number = 0;

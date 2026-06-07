@@ -96,6 +96,7 @@ import {
 import { GameTeleComponent, GameTeleHandlerService, SelectGameTeleComponent } from '@keira/features/game-tele';
 import { CreatureModelInfoComponent, CreatureModelInfoHandlerService, SelectCreatureModelInfoComponent } from '@keira/features/model-info';
 import { RetroportDashboardComponent } from '@keira/features/retroport';
+import { SelectShapeshiftComponent, ShapeshiftHandlerService, ShapeshiftModelComponent } from '@keira/features/shapeshift';
 import { SelectTrainerComponent, TrainerComponent, TrainerHandlerService, TrainerSpellComponent } from '@keira/features/trainer';
 import { UnusedGuidSearchComponent } from '@keira/features/unused-guid-search';
 
@@ -123,6 +124,20 @@ export const KEIRA_ROUTES: Routes = [
         path: 'model',
         component: CreatureModelInfoComponent,
         canActivate: [CreatureModelInfoHandlerService],
+      },
+    ],
+  },
+  {
+    path: 'shapeshift',
+    children: [
+      {
+        path: 'select',
+        component: SelectShapeshiftComponent,
+      },
+      {
+        path: 'form',
+        component: ShapeshiftModelComponent,
+        canActivate: [ShapeshiftHandlerService],
       },
     ],
   },

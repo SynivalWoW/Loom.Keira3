@@ -193,6 +193,11 @@
       "TITLE": "Creature Model Info",
       "SEARCH_MODEL_INFO": "Search Model Info",
       "EDIT_MODEL_INFO": "Model Info Editor"
+    },
+    "SHAPESHIFT": {
+      "TITLE": "Shapeshift Models",
+      "SEARCH_SHAPESHIFT": "Search Forms",
+      "EDIT_SHAPESHIFT": "Form Editor"
     }
   },
   "RETROPORT": {

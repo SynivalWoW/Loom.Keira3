@@ -841,6 +841,32 @@
               </ul>
             </div>
           </li>
+
+          <li class="sidebar-dropdown" [class.active]="menuStates['shapeshift'] === 'down'">
+            <a (click)="toggleState('shapeshift')">
+              <i class="fa fa-paw"></i>
+              <span [translate]="'SIDEBAR.SHAPESHIFT.TITLE'"></span>
+            </a>
+            <div class="sidebar-submenu" [@slide]="menuStates['shapeshift']">
+              <ul>
+                <li>
+                  <a href="#" routerLinkActive="active" [routerLink]="'shapeshift/select'">
+                    {{ 'SIDEBAR.SHAPESHIFT.SEARCH_SHAPESHIFT' | translate }}
+                  </a>
+                </li>
+                @if (shapeshiftHandlerService.selected) {
+                  <li>
+                    <a href="#" routerLinkActive="active" [routerLink]="'shapeshift/form'">
+                      {{ 'SIDEBAR.SHAPESHIFT.EDIT_SHAPESHIFT' | translate }}
+                      @if (shapeshiftHandlerService.isShapeshiftModelUnsaved()) {
+                        <keira-unsaved-icon />
+                      }
+                    </a>
+                  </li>
+                }
+              </ul>
+            </div>
+          </li>
         </ul>
       </div>
     </div>
