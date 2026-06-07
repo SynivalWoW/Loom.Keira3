@@ -1,8 +1,20 @@
 import { inject, Injectable } from '@angular/core';
 import { ElectronService } from '@keira/shared/common-services';
 
+/** Shape of the JSON the Python `loom_orchestrator.py` prints on stdout (see §7 validation). */
 export interface OrchestratorResult {
-  success: boolean;
+  status?: string;
+  internal_name?: string;
+  target_folder?: string;
+  entry?: string;
+  display_id?: number;
+  nViews?: number;
+  global_flags?: number;
+  combiner_array?: number[];
+  combiner_action?: string;
+  emitter_safe?: boolean;
+  particles?: number;
+  ribbons?: number;
   [key: string]: unknown;
 }
 
@@ -18,6 +30,7 @@ export interface OrchestratorResult {
 export class OrchestratorBridgeService {
   private readonly electronService = inject(ElectronService);
 
+  /** Run `python <args...>` and resolve with the parsed JSON it prints. */
   runOrchestrator(args: string[], onLog: (line: string) => void): Promise<OrchestratorResult> {
     return new Promise<OrchestratorResult>((resolve, reject) => {
       if (!this.electronService.isElectron()) {
@@ -25,7 +38,7 @@ export class OrchestratorBridgeService {
         return;
       }
 
-      const child = this.electronService.childProcess.spawn('python', ['loom_orchestrator.py', ...args]);
+      const child = this.electronService.childProcess.spawn('python', args);
       let stdout = '';
 
       child.stdout.on('data', (chunk: Buffer) => {
@@ -54,5 +67,18 @@ export class OrchestratorBridgeService {
         }
       });
     });
+  }
+
+  /**
+   * Run the orchestrator over one `To Convert/<Category>/<ModelName>/` folder. Mirrors the CLI
+   * contract `python loom_orchestrator.py <target_dir> <mapping_json>`.
+   */
+  runForModel(
+    scriptPath: string,
+    targetDir: string,
+    mapping: Record<string, unknown>,
+    onLog: (line: string) => void,
+  ): Promise<OrchestratorResult> {
+    return this.runOrchestrator([scriptPath, targetDir, JSON.stringify(mapping)], onLog);
   }
 }

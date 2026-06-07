@@ -60,15 +60,29 @@ describe('OrchestratorBridgeService', () => {
     spawn.mockReturnValue(fake.child);
     const logs: string[] = [];
 
-    const promise = service.runOrchestrator(['--realm', 'LIVE'], (line) => logs.push(line));
-    fake.emitStdout('{"success": true, "display_id": 5}');
+    const promise = service.runOrchestrator(['loom_orchestrator.py', '/out', '{}'], (line) => logs.push(line));
+    fake.emitStdout('{"status": "ok", "display_id": 5}');
     fake.emitClose(0);
 
     const result = await promise;
-    expect(result.success).toBe(true);
-    expect(result['display_id']).toBe(5);
-    expect(spawn).toHaveBeenCalledWith('python', ['loom_orchestrator.py', '--realm', 'LIVE']);
-    expect(logs.join('')).toContain('success');
+    expect(result.status).toBe('ok');
+    expect(result.display_id).toBe(5);
+    expect(spawn).toHaveBeenCalledWith('python', ['loom_orchestrator.py', '/out', '{}']);
+    expect(logs.join('')).toContain('ok');
+  });
+
+  it('runForModel maps script path + folder + mapping into the python args', async () => {
+    const fake = makeFakeChild();
+    spawn.mockReturnValue(fake.child);
+
+    const mapping = { internal_name: 'Cat', target_folder: 'Druid' };
+    const promise = service.runForModel('/ml/loom_orchestrator.py', '/out/Druid/Cat', mapping, () => undefined);
+    fake.emitStdout('{"status":"ok","display_id":80040}');
+    fake.emitClose(0);
+
+    const result = await promise;
+    expect(result.display_id).toBe(80040);
+    expect(spawn).toHaveBeenCalledWith('python', ['/ml/loom_orchestrator.py', '/out/Druid/Cat', JSON.stringify(mapping)]);
   });
 
   it('prefixes streamed stderr', async () => {

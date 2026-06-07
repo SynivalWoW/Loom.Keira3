@@ -24,18 +24,36 @@
   </div>
 
   <div class="payload-inputs">
+    <label for="targetFolder">{{ 'RETROPORT.TARGET_FOLDER' | translate }}</label>
+    <input id="targetFolder" type="text" [(ngModel)]="targetFolder" placeholder="To Convert/Druid/WindsaberCat" />
+
+    <label for="orchestratorPath">{{ 'RETROPORT.ORCHESTRATOR_PATH' | translate }}</label>
+    <input id="orchestratorPath" type="text" [(ngModel)]="orchestratorPath" />
+
+    <label for="itemName">{{ 'RETROPORT.ITEM_NAME' | translate }}</label>
+    <input id="itemName" type="text" [(ngModel)]="payload.itemName" />
+
     <label for="displayId">{{ 'RETROPORT.DISPLAY_ID' | translate }}</label>
     <input id="displayId" type="number" [(ngModel)]="payload.displayId" />
   </div>
 
   <div class="actions">
-    <button id="generate-sql-btn" type="button" class="btn" (click)="generateSql()">
-      {{ 'RETROPORT.GENERATE_SQL' | translate }}
-    </button>
     <button id="run-orchestrator-btn" type="button" class="btn" [disabled]="running()" (click)="runOrchestrator()">
       {{ 'RETROPORT.RUN_ORCHESTRATOR' | translate }}
     </button>
+    <button id="generate-sql-btn" type="button" class="btn" (click)="generateSql()">
+      {{ 'RETROPORT.GENERATE_SQL' | translate }}
+    </button>
   </div>
+
+  @if (metadata(); as meta) {
+    <div id="metadata" class="metadata">
+      <span>nViews: {{ meta.nViews }}</span>
+      <span>combiner: [{{ meta.combiner_array }}]</span>
+      <span>emitter safe: {{ meta.emitter_safe }}</span>
+      <span>display id: {{ meta.display_id }}</span>
+    </div>
+  }
 
   <pre id="generated-sql">{{ generatedSql() }}</pre>
 

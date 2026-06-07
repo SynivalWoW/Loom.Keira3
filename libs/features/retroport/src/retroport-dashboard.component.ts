@@ -4,12 +4,16 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ToastrService } from 'ngx-toastr';
 
 import { RealmEnvironment, RetroportDbalService, RetroportPayload } from '@keira/shared/db-layer';
-import { OrchestratorBridgeService } from './orchestrator-bridge.service';
+import { OrchestratorBridgeService, OrchestratorResult } from './orchestrator-bridge.service';
+
+const DEFAULT_ORCHESTRATOR_PATH = 'loom_orchestrator.py';
 
 /**
- * Retroport DBAL dashboard: a LIVE/PTR environment toggle, a payload form, a "Generate SQL"
- * action that previews realm-aware item_template / player_shapeshift_model SQL, and a
- * "Run Orchestrator" action that drives the Python pipeline and streams a deployment log.
+ * Retroport DBAL dashboard. A single "Run Orchestrator" click drives the whole pipeline:
+ *   1. runs the Python loom_orchestrator.py over the chosen To Convert/<Category>/<Model>/ folder,
+ *   2. captures the returned display id + binary-validation metadata,
+ *   3. auto-generates realm-aware item_template / player_shapeshift_model SQL for the LIVE/PTR
+ *      toggle, previewed in the page and executable through Keira3's existing connection.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,7 +28,10 @@ export class RetroportDashboardComponent {
   protected readonly generatedSql = signal<string>('');
   protected readonly deploymentLog = signal<string[]>([]);
   protected readonly running = signal<boolean>(false);
+  protected readonly metadata = signal<OrchestratorResult | null>(null);
 
+  protected targetFolder = '';
+  protected orchestratorPath = DEFAULT_ORCHESTRATOR_PATH;
   protected payload: RetroportPayload = { displayId: 0 };
 
   private readonly dbal = inject(RetroportDbalService);
@@ -48,10 +55,30 @@ export class RetroportDashboardComponent {
   }
 
   protected async runOrchestrator(): Promise<void> {
+    const folder = this.targetFolder.trim();
+    if (!folder) {
+      this.toastr.error('Enter the "To Convert" model folder to retroport first');
+      return;
+    }
+
     this.running.set(true);
     try {
-      const result = await this.orchestrator.runOrchestrator(['--realm', this.realm()], (line) => this.appendLog(line));
-      this.appendLog(`Done: success=${result.success}`);
+      const mapping = { internal_name: this.payload.itemName ?? '', target_folder: '' };
+      const result = await this.orchestrator.runForModel(this.orchestratorPath, folder, mapping, (line) => this.appendLog(line));
+      this.metadata.set(result);
+
+      // Drive the minted display id straight into the SQL payload.
+      if (typeof result.display_id === 'number') {
+        this.payload.displayId = result.display_id;
+      }
+
+      this.appendLog(
+        `Repaired ${result.internal_name ?? folder}: nViews=${result.nViews}, ` +
+          `combiner=[${(result.combiner_array ?? []).join(', ')}], emitter_safe=${result.emitter_safe}`,
+      );
+
+      // Auto-generate the realm-aware SQL with the metadata we just received.
+      this.generateSql();
     } catch (e) {
       this.toastr.error((e as Error).message);
       this.appendLog(`Error: ${(e as Error).message}`);

@@ -198,7 +198,10 @@
     "GENERATE_SQL": "Generate SQL",
     "RUN_ORCHESTRATOR": "Run Orchestrator",
     "DEPLOYMENT_LOG": "Deployment log",
-    "DISPLAY_ID": "Display ID"
+    "DISPLAY_ID": "Display ID",
+    "TARGET_FOLDER": "To Convert folder",
+    "ORCHESTRATOR_PATH": "Orchestrator script path",
+    "ITEM_NAME": "Item name"
   },
   "DASHBOARD": {
     "WELCOME": "Bienvenido a Keira3",
