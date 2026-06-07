@@ -188,7 +188,12 @@
       "TRAINER_SPELL": "训练师法术"
     },
     "UNUSED_GUID_SEARCH": "未使用的GUID",
-    "RETROPORT": "Retroport"
+    "RETROPORT": "Retroport",
+    "MODEL_INFO": {
+      "TITLE": "Creature Model Info",
+      "SEARCH_MODEL_INFO": "Search Model Info",
+      "EDIT_MODEL_INFO": "Model Info Editor"
+    }
   },
   "RETROPORT": {
     "TITLE": "Retroport DBAL",
@@ -962,5 +967,8 @@
     "SEARCH": "搜索",
     "SEARCHING": "搜索中...",
     "FOUND_GUIDS": "找到未使用的GUID："
+  },
+  "CREATURE_MODEL_INFO": {
+    "EDITOR": "Creature Model Info Editor"
   }
 }

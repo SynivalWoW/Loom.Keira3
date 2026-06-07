@@ -815,6 +815,32 @@
               <i class="fa fa-rocket"></i> {{ 'SIDEBAR.RETROPORT' | translate }}
             </a>
           </li>
+
+          <li class="sidebar-dropdown" [class.active]="menuStates['modelInfo'] === 'down'">
+            <a (click)="toggleState('modelInfo')">
+              <i class="fa fa-paw"></i>
+              <span [translate]="'SIDEBAR.MODEL_INFO.TITLE'"></span>
+            </a>
+            <div class="sidebar-submenu" [@slide]="menuStates['modelInfo']">
+              <ul>
+                <li>
+                  <a href="#" routerLinkActive="active" [routerLink]="'model-info/select'">
+                    {{ 'SIDEBAR.MODEL_INFO.SEARCH_MODEL_INFO' | translate }}
+                  </a>
+                </li>
+                @if (creatureModelInfoHandlerService.selected) {
+                  <li>
+                    <a href="#" routerLinkActive="active" [routerLink]="'model-info/model'">
+                      {{ 'SIDEBAR.MODEL_INFO.EDIT_MODEL_INFO' | translate }}
+                      @if (creatureModelInfoHandlerService.isCreatureModelInfoUnsaved()) {
+                        <keira-unsaved-icon />
+                      }
+                    </a>
+                  </li>
+                }
+              </ul>
+            </div>
+          </li>
         </ul>
       </div>
     </div>
