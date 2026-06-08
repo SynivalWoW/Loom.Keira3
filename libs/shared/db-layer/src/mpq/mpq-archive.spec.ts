@@ -7,10 +7,12 @@ import {
   createArchive,
   extractFile,
   listFiles,
+  MPQ_COMPRESSION_PKWARE,
   MPQ_COMPRESSION_ZLIB,
   MPQ_FLAG_COMPRESS,
   MPQ_FLAG_ENCRYPTED,
   MPQ_FLAG_EXISTS,
+  MPQ_FLAG_IMPLODE,
   MPQ_FLAG_SINGLE_UNIT,
   MpqBuiltFile,
 } from './mpq-archive';
@@ -22,6 +24,10 @@ const compressor: Compressor = {
 
 const enc = (text: string): Uint8Array => new TextEncoder().encode(text);
 const dec = (data: Uint8Array): string => new TextDecoder().decode(data);
+
+// blast.c reference PKWARE DCL stream → "AIAIAIAIAIAIA" (used to exercise the implode read path).
+const PKWARE_STREAM = Uint8Array.from([0x00, 0x04, 0x82, 0x24, 0x25, 0x8f, 0x80, 0x7f]);
+const PKWARE_TEXT = 'AIAIAIAIAIAIA';
 
 /** A buffer that the zlib pass cannot shrink, forcing the "stored sector" path. */
 function incompressible(size: number): Uint8Array {
@@ -180,11 +186,28 @@ describe('mpq-archive', () => {
     expect(() => extractFile(archive, 'u.bin', compressor)).toThrow(/Unsupported MPQ compression mask 0xff/);
   });
 
-  it('reports PKWARE implode as unsupported', () => {
+  it('reads a single-unit file compressed with the PKWARE implode flag', () => {
+    // MPQ_FILE_IMPLODE: the whole file is a raw DCL stream, no per-sector mask byte.
     const archive = buildArchive([
-      { name: 'i.bin', bytes: Uint8Array.from([1, 2, 3, 4]), flags: MPQ_FLAG_EXISTS | MPQ_FLAG_SINGLE_UNIT, fileSize: 100 },
+      {
+        name: 'i.bin',
+        bytes: PKWARE_STREAM,
+        flags: MPQ_FLAG_EXISTS | MPQ_FLAG_SINGLE_UNIT | MPQ_FLAG_IMPLODE,
+        fileSize: PKWARE_TEXT.length,
+      },
     ]);
-    expect(() => extractFile(archive, 'i.bin', compressor)).toThrow(/PKWARE implode/);
+    expect(dec(extractFile(archive, 'i.bin', compressor))).toBe(PKWARE_TEXT);
+  });
+
+  it('reads a sector compressed with the PKWARE (0x08) mask', () => {
+    // MPQ_FILE_COMPRESS with a 0x08 mask byte ahead of the DCL stream.
+    const bytes = new Uint8Array(PKWARE_STREAM.length + 1);
+    bytes[0] = MPQ_COMPRESSION_PKWARE;
+    bytes.set(PKWARE_STREAM, 1);
+    const archive = buildArchive([
+      { name: 'p.bin', bytes, flags: MPQ_FLAG_EXISTS | MPQ_FLAG_SINGLE_UNIT | MPQ_FLAG_COMPRESS, fileSize: PKWARE_TEXT.length },
+    ]);
+    expect(dec(extractFile(archive, 'p.bin', compressor))).toBe(PKWARE_TEXT);
   });
 
   it('rejects encrypted files', () => {

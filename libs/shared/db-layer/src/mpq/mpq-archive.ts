@@ -1,14 +1,16 @@
 import { decryptBlock, encryptBlock, hashString, MpqHashType } from './mpq-crypto';
+import { explode } from './mpq-explode';
 
 /**
  * Pure MPQ v1 archive reader/writer (the format WotLK 3.3.5a patch archives use). Operates on plain
  * byte buffers and round-trips, so it is fully unit-testable; the filesystem + zlib wiring lives in
  * `MpqArchiveService`.
  *
- * Supported on read: single-unit and multi-sector files, stored (uncompressed) or zlib-compressed.
- * Files are written as multi-sector zlib (matching what real archives look like). Encrypted files
- * and non-zlib compression (PKWARE implode, bzip2, …) are reported with a descriptive error rather
- * than silently mis-decoded — DBCs, the use case here, are neither encrypted nor implode-compressed.
+ * Supported on read: single-unit and multi-sector files, stored (uncompressed), zlib-compressed, or
+ * PKWARE-imploded (compression mask 0x08 and the MPQ_FILE_IMPLODE flag — what the original WoW data
+ * MPQs use). Files are written as multi-sector zlib (matching what real archives look like).
+ * Encrypted files and other compression methods (bzip2, sparse, …) are reported with a descriptive
+ * error rather than silently mis-decoded.
  */
 
 const MPQ_HEADER_SIGNATURE = 0x1a51504d; // 'MPQ\x1A' read as a little-endian uint32
@@ -16,18 +18,22 @@ const HEADER_SIZE = 32;
 const HEADER_SEARCH_STRIDE = 0x200;
 const ENTRY_SIZE = 16;
 
+export const MPQ_FLAG_IMPLODE = 0x00000100;
 export const MPQ_FLAG_COMPRESS = 0x00000200;
 export const MPQ_FLAG_ENCRYPTED = 0x00010000;
 export const MPQ_FLAG_SINGLE_UNIT = 0x01000000;
 export const MPQ_FLAG_EXISTS = 0x80000000;
 
 export const MPQ_COMPRESSION_ZLIB = 0x02;
+export const MPQ_COMPRESSION_PKWARE = 0x08;
 
+const FLAG_IMPLODE = MPQ_FLAG_IMPLODE;
 const FLAG_COMPRESS = MPQ_FLAG_COMPRESS;
 const FLAG_ENCRYPTED = MPQ_FLAG_ENCRYPTED;
 const FLAG_SINGLE_UNIT = MPQ_FLAG_SINGLE_UNIT;
 const FLAG_EXISTS = MPQ_FLAG_EXISTS;
 const COMPRESSION_ZLIB = MPQ_COMPRESSION_ZLIB;
+const COMPRESSION_PKWARE = MPQ_COMPRESSION_PKWARE;
 
 const HASH_ENTRY_EMPTY = 0xffffffff;
 
@@ -161,12 +167,28 @@ function findHashEntry(archive: MpqArchive, fileName: string): HashEntry | undef
   return undefined;
 }
 
-function inflateMasked(payload: Uint8Array, compressor: Compressor): Uint8Array {
+/** Decompress one multi-method sector (leading mask byte): zlib (0x02) or PKWARE implode (0x08). */
+function decompressMasked(payload: Uint8Array, expected: number, compressor: Compressor): Uint8Array {
   const mask = payload[0];
+  const body = payload.subarray(1);
   if (mask === COMPRESSION_ZLIB) {
-    return compressor.inflate(payload.subarray(1));
+    return compressor.inflate(body);
+  }
+  if (mask === COMPRESSION_PKWARE) {
+    return explode(body, expected);
   }
   throw new Error(`Unsupported MPQ compression mask 0x${mask.toString(16)}`);
+}
+
+/** Decompress a single block/sector to `expected` bytes, honouring the file's stored/implode/compress flags. */
+function decompressBlock(raw: Uint8Array, expected: number, flags: number, compressor: Compressor): Uint8Array {
+  if (raw.length >= expected) {
+    return raw.subarray(0, expected); // stored (uncompressed)
+  }
+  if ((flags & FLAG_IMPLODE) !== 0) {
+    return explode(raw, expected); // whole-file PKWARE implode — no per-sector mask byte
+  }
+  return decompressMasked(raw, expected, compressor);
 }
 
 function readFileData(buffer: Uint8Array, archive: MpqArchive, block: BlockEntry, compressor: Compressor): Uint8Array {
@@ -178,13 +200,7 @@ function readFileData(buffer: Uint8Array, archive: MpqArchive, block: BlockEntry
 
   if ((block.flags & FLAG_SINGLE_UNIT) !== 0) {
     const raw = buffer.subarray(dataStart, dataStart + block.compressedSize);
-    if (block.compressedSize < block.fileSize) {
-      if ((block.flags & FLAG_COMPRESS) !== 0) {
-        return inflateMasked(raw, compressor);
-      }
-      throw new Error('Unsupported MPQ compression: PKWARE implode');
-    }
-    return raw.subarray(0, block.fileSize);
+    return decompressBlock(raw, block.fileSize, block.flags, compressor);
   }
 
   const sectorSize = 512 << archive.header.sectorSizeShift;
@@ -195,7 +211,7 @@ function readFileData(buffer: Uint8Array, archive: MpqArchive, block: BlockEntry
   for (let i = 0; i < sectorCount; i++) {
     const raw = buffer.subarray(dataStart + offsets[i], dataStart + offsets[i + 1]);
     const expected = Math.min(sectorSize, block.fileSize - i * sectorSize);
-    const sector = raw.length >= expected ? raw.subarray(0, expected) : inflateMasked(raw, compressor);
+    const sector = decompressBlock(raw, expected, block.flags, compressor);
     out.set(sector.subarray(0, expected), written);
     written += expected;
   }

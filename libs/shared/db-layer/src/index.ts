@@ -7,6 +7,7 @@ export * from './dbc-definitions';
 export * from './dbc-file.service';
 export * from './dbc-reader.service';
 export * from './mpq/mpq-crypto';
+export * from './mpq/mpq-explode';
 export * from './mpq/mpq-archive';
 export * from './mpq-archive.service';
 export * from './display-id-validator.service';
