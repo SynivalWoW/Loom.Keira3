@@ -9,8 +9,12 @@
         }
       </select>
 
+      <label for="mpqPath">{{ 'DBC_EDITOR.MPQ' | translate }}</label>
+      <input id="mpqPath" type="text" [(ngModel)]="mpqPath" placeholder="(optional .mpq archive)" />
+      <button id="browse-mpq-btn" type="button" class="btn" (click)="browseMpq()">{{ 'DBC_EDITOR.BROWSE_MPQ' | translate }}</button>
+
       <label for="dbcPath">{{ 'DBC_EDITOR.PATH' | translate }}</label>
-      <input id="dbcPath" type="text" [(ngModel)]="dbcPath" placeholder="(path to .dbc)" />
+      <input id="dbcPath" type="text" [(ngModel)]="dbcPath" placeholder="(path to .dbc / file in archive)" />
       <button id="browse-btn" type="button" class="btn" (click)="browse()">{{ 'DBC_EDITOR.BROWSE' | translate }}</button>
 
       <button id="load-btn" type="button" class="btn" (click)="load()">{{ 'DBC_EDITOR.LOAD' | translate }}</button>

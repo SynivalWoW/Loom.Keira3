@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { ElectronService } from '@keira/shared/common-services';
 
 import { DbcFieldDef, expandFields } from './dbc-definitions';
+import { MpqArchiveService } from './mpq-archive.service';
 
 export type DbcCell = number | string;
 export type DbcRow = Record<string, DbcCell>;
@@ -22,6 +23,7 @@ const WDBC_MAGIC = [0x57, 0x44, 0x42, 0x43]; // 'WDBC'
 })
 export class DbcFileService {
   private readonly electronService = inject(ElectronService);
+  private readonly mpq = inject(MpqArchiveService);
 
   parse(buffer: Uint8Array, table: string): ParsedDbc {
     const fields = expandFields(table);
@@ -112,5 +114,15 @@ export class DbcFileService {
 
   write(path: string, table: string, rows: DbcRow[]): void {
     this.electronService.fs.writeFileSync(path, Buffer.from(this.serialize(table, rows)));
+  }
+
+  /** Parse a `.dbc` extracted from inside an MPQ archive (e.g. a WotLK patch). */
+  readFromMpq(archivePath: string, fileName: string, table: string): ParsedDbc {
+    return this.parse(this.mpq.read(archivePath, fileName), table);
+  }
+
+  /** Serialize rows and write them back into the MPQ archive as `fileName`. */
+  writeToMpq(archivePath: string, fileName: string, table: string, rows: DbcRow[]): void {
+    this.mpq.write(archivePath, fileName, this.serialize(table, rows));
   }
 }

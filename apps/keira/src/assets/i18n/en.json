@@ -987,6 +987,8 @@
     "TABLE": "Table",
     "PATH": "DBC file path",
     "BROWSE": "Browse...",
+    "MPQ": "MPQ archive",
+    "BROWSE_MPQ": "Browse MPQ...",
     "LOAD": "Load",
     "SAVE": "Save",
     "ADD_ROW": "Add Row"

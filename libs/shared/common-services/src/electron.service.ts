@@ -5,6 +5,7 @@ import * as childProcess from 'child_process';
 // the resulting javascript file will look as if you never imported the module at all.
 import { ipcRenderer, webFrame } from 'electron';
 import * as fs from 'fs';
+import * as zlib from 'zlib';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +15,7 @@ export class ElectronService {
   webFrame!: typeof webFrame;
   childProcess!: typeof childProcess;
   fs!: typeof fs;
+  zlib!: typeof zlib;
 
   constructor() {
     // Conditional imports
@@ -23,6 +25,7 @@ export class ElectronService {
 
       this.childProcess = window.require('child_process');
       this.fs = window.require('fs');
+      this.zlib = window.require('zlib');
     }
   }
 

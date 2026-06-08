@@ -8,6 +8,10 @@ import { TranslateModule } from '@ngx-translate/core';
  * In-GUI binary DBC editor for the retroport tables (CreatureDisplayInfo / CreatureModelData),
  * driven by the WDBX 12340 column definitions. Open a .dbc, edit/add/delete rows in a grid, save
  * back to the .dbc — so the whole DBC+SQL display chain can be managed without leaving Keira3.
+ *
+ * A .dbc can also be opened straight out of a WotLK patch MPQ: pick the archive, point the path
+ * field at the file inside it (e.g. DBFilesClient\CreatureModelData.dbc), and saving writes it back
+ * into the same archive.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,6 +24,7 @@ export class DbcEditorComponent {
   protected readonly tables = DBC_TABLE_NAMES;
   protected table = DBC_TABLE_NAMES[0];
   protected dbcPath = '';
+  protected mpqPath = '';
   protected readonly fields = signal<DbcFieldDef[]>([]);
   protected readonly rows = signal<DbcRow[]>([]);
   protected readonly status = signal<string>('');
@@ -36,9 +41,20 @@ export class DbcEditorComponent {
     }
   }
 
+  protected async browseMpq(): Promise<void> {
+    const path = await this.fileDialog.pickFile([{ name: 'MPQ', extensions: ['mpq', 'MPQ'] }]);
+    if (path) {
+      this.mpqPath = path;
+      this.changeDetectorRef.markForCheck();
+    }
+  }
+
   protected load(): void {
     try {
-      const parsed = this.dbcFile.read(this.dbcPath, this.table);
+      // With an MPQ archive selected, the path field names the file inside it (e.g. DBFilesClient\Foo.dbc).
+      const parsed = this.mpqPath
+        ? this.dbcFile.readFromMpq(this.mpqPath, this.dbcPath, this.table)
+        : this.dbcFile.read(this.dbcPath, this.table);
       this.fields.set(parsed.fields);
       this.rows.set(parsed.rows);
       this.status.set(`Loaded ${parsed.rows.length} rows from ${this.table}`);
@@ -67,8 +83,13 @@ export class DbcEditorComponent {
 
   protected save(): void {
     try {
-      this.dbcFile.write(this.dbcPath, this.table, this.rows());
-      this.status.set(`Saved ${this.rows().length} rows to ${this.dbcPath}`);
+      if (this.mpqPath) {
+        this.dbcFile.writeToMpq(this.mpqPath, this.dbcPath, this.table, this.rows());
+        this.status.set(`Saved ${this.rows().length} rows to ${this.dbcPath} in ${this.mpqPath}`);
+      } else {
+        this.dbcFile.write(this.dbcPath, this.table, this.rows());
+        this.status.set(`Saved ${this.rows().length} rows to ${this.dbcPath}`);
+      }
     } catch (e) {
       this.status.set(`Error: ${(e as Error).message}`);
     }

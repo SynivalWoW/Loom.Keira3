@@ -4,16 +4,25 @@ import { ElectronService } from '@keira/shared/common-services';
 import { vi } from 'vitest';
 
 import { DbcFileService } from './dbc-file.service';
+import { MpqArchiveService } from './mpq-archive.service';
 
 describe('DbcFileService', () => {
   let service: DbcFileService;
   const fs = { readFileSync: vi.fn(), writeFileSync: vi.fn() };
+  const mpq = { read: vi.fn(), write: vi.fn() };
 
   beforeEach(() => {
     fs.readFileSync.mockReset();
     fs.writeFileSync.mockReset();
+    mpq.read.mockReset();
+    mpq.write.mockReset();
     TestBed.configureTestingModule({
-      providers: [provideZonelessChangeDetection(), { provide: ElectronService, useValue: { fs } }, DbcFileService],
+      providers: [
+        provideZonelessChangeDetection(),
+        { provide: ElectronService, useValue: { fs } },
+        { provide: MpqArchiveService, useValue: mpq },
+        DbcFileService,
+      ],
     });
     service = TestBed.inject(DbcFileService);
   });
@@ -64,5 +73,24 @@ describe('DbcFileService', () => {
     // the written buffer round-trips back to the row
     const written = new Uint8Array(fs.writeFileSync.mock.calls[0][1]);
     expect(service.parse(written, 'CreatureModelData').rows[0]['ID']).toBe(9);
+  });
+
+  it('readFromMpq() parses a dbc extracted from an archive', () => {
+    mpq.read.mockReturnValue(service.serialize('CreatureModelData', [{ ID: 42, ModelName: 'cat.m2' }]));
+    const parsed = service.readFromMpq('/patch.mpq', 'DBFilesClient\\CreatureModelData.dbc', 'CreatureModelData');
+
+    expect(mpq.read).toHaveBeenCalledWith('/patch.mpq', 'DBFilesClient\\CreatureModelData.dbc');
+    expect(parsed.rows[0]['ID']).toBe(42);
+    expect(parsed.rows[0]['ModelName']).toBe('cat.m2');
+  });
+
+  it('writeToMpq() serializes rows back into the archive', () => {
+    service.writeToMpq('/patch.mpq', 'DBFilesClient\\CreatureModelData.dbc', 'CreatureModelData', [{ ID: 11 }]);
+
+    expect(mpq.write).toHaveBeenCalledTimes(1);
+    const [archivePath, fileName, data] = mpq.write.mock.calls[0];
+    expect(archivePath).toBe('/patch.mpq');
+    expect(fileName).toBe('DBFilesClient\\CreatureModelData.dbc');
+    expect(service.parse(new Uint8Array(data), 'CreatureModelData').rows[0]['ID']).toBe(11);
   });
 });

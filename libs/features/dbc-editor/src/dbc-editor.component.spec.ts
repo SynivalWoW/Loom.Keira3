@@ -21,13 +21,16 @@ class DbcEditorPage extends PageObject<DbcEditorComponent> {
   get browseBtn() {
     return this.query<HTMLButtonElement>('#browse-btn');
   }
+  get browseMpqBtn() {
+    return this.query<HTMLButtonElement>('#browse-mpq-btn');
+  }
   get status() {
     return this.query<HTMLParagraphElement>('#dbc-status');
   }
 }
 
 describe('DbcEditorComponent', () => {
-  const dbcFile = { read: vi.fn(), write: vi.fn() };
+  const dbcFile = { read: vi.fn(), write: vi.fn(), readFromMpq: vi.fn(), writeToMpq: vi.fn() };
   const fileDialog = { pickFile: vi.fn() };
   const parsed = {
     fields: [
@@ -40,6 +43,8 @@ describe('DbcEditorComponent', () => {
   beforeEach(() => {
     dbcFile.read.mockReset().mockReturnValue(parsed);
     dbcFile.write.mockReset();
+    dbcFile.readFromMpq.mockReset().mockReturnValue(parsed);
+    dbcFile.writeToMpq.mockReset();
     fileDialog.pickFile.mockReset();
 
     TestBed.configureTestingModule({
@@ -142,5 +147,53 @@ describe('DbcEditorComponent', () => {
     await page.whenStable();
 
     expect(component.dbcPath).toBe('/existing.dbc');
+  });
+
+  it('fills the mpq path from the native file picker', async () => {
+    fileDialog.pickFile.mockResolvedValue('/abs/Data/patch-4.mpq');
+    const { page, component } = setup();
+    page.clickElement(page.browseMpqBtn);
+    await page.whenStable();
+
+    expect(fileDialog.pickFile).toHaveBeenCalledWith([{ name: 'MPQ', extensions: ['mpq', 'MPQ'] }]);
+    expect(component.mpqPath).toBe('/abs/Data/patch-4.mpq');
+  });
+
+  it('leaves the mpq path unchanged when the picker is cancelled', async () => {
+    fileDialog.pickFile.mockResolvedValue(null);
+    const { page, component } = setup();
+    component.mpqPath = '/existing.mpq';
+    page.clickElement(page.browseMpqBtn);
+    await page.whenStable();
+
+    expect(component.mpqPath).toBe('/existing.mpq');
+  });
+
+  it('loads a dbc from inside an mpq archive when one is selected', () => {
+    const { page, component } = setup();
+    component.mpqPath = '/Data/patch-4.mpq';
+    page.setInputValueById('dbcPath', 'DBFilesClient\\CreatureModelData.dbc');
+    page.clickElement(page.loadBtn);
+
+    expect(dbcFile.readFromMpq).toHaveBeenCalledWith('/Data/patch-4.mpq', 'DBFilesClient\\CreatureModelData.dbc', component.table);
+    expect(dbcFile.read).not.toHaveBeenCalled();
+    expect(page.status.innerText).toContain('Loaded 1 rows');
+  });
+
+  it('saves a dbc back into the mpq archive when one is selected', () => {
+    const { page, component } = setup();
+    component.mpqPath = '/Data/patch-4.mpq';
+    page.setInputValueById('dbcPath', 'DBFilesClient\\CreatureModelData.dbc');
+    page.clickElement(page.loadBtn);
+    page.clickElement(page.saveBtn);
+
+    expect(dbcFile.writeToMpq).toHaveBeenCalledWith(
+      '/Data/patch-4.mpq',
+      'DBFilesClient\\CreatureModelData.dbc',
+      component.table,
+      component.rows(),
+    );
+    expect(dbcFile.write).not.toHaveBeenCalled();
+    expect(page.status.innerText).toContain('Saved 1 rows');
   });
 });
