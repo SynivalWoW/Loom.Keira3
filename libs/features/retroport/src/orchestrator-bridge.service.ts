@@ -18,6 +18,10 @@ export interface OrchestratorResult {
   ribbons?: number;
   vertex_count?: number;
   vertex_safe?: boolean;
+  vertex_loadable?: boolean;
+  vertex_status?: string;
+  textures_wired?: number;
+  texture_variation_slots?: number[];
   missing_textures?: string[];
   anim_count?: number;
   is_md21?: boolean;

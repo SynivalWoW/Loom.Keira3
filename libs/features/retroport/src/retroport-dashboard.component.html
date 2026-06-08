@@ -76,8 +76,14 @@
     <div id="metadata" class="metadata" [class.invalid]="meta.valid === false">
       <span>nViews: {{ meta.nViews }} ({{ meta.skin_count }} skins)</span>
       <span>combiner: [{{ meta.combiner_array }}] ({{ meta.combiner_action }})</span>
-      <span>vertices: {{ meta.vertex_count }} {{ meta.vertex_safe ? 'OK' : '⚠ over limit' }}</span>
+      <span [class.warn]="meta.vertex_loadable === false">
+        vertices: {{ meta.vertex_count }}
+        {{
+          meta.vertex_status === 'safe' ? 'OK' : meta.vertex_status === 'caution' ? '⚠ over budget (still loads)' : '✖ over 16-bit limit'
+        }}
+      </span>
       <span>emitter safe: {{ meta.emitter_safe }}</span>
+      <span>textures wired: {{ meta.textures_wired }} (+{{ meta.texture_variation_slots?.length ?? 0 }} replaceable)</span>
       <span>display id: {{ meta.display_id }}</span>
       @if (meta.missing_textures?.length) {
         <span class="warn">missing textures: {{ meta.missing_textures }}</span>

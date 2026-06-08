@@ -160,6 +160,10 @@ describe('RetroportDashboardComponent', () => {
         combiner_action: 'repaired',
         vertex_count: 9000,
         vertex_safe: true,
+        vertex_loadable: true,
+        vertex_status: 'safe',
+        textures_wired: 5,
+        texture_variation_slots: [0],
         emitter_safe: true,
         valid: true,
       });
@@ -182,6 +186,8 @@ describe('RetroportDashboardComponent', () => {
     expect(component.payload.displayId).toBe(1234567);
     // validation metadata + log + auto-generated SQL are all shown
     expect(page.metadata.innerHTML).toContain('4');
+    expect(page.metadata.innerHTML).toContain('textures wired: 5'); // texture-wiring surfaced
+    expect(page.metadata.innerHTML).toContain('(+1 replaceable)'); // replaceable TextureVariation slot
     expect(page.log.innerHTML).toContain('streamed line');
     expect(page.log.innerHTML).toContain('Repaired WindsaberCat');
     expect(page.generatedSql.innerHTML).toContain('ITEM_SQL');
@@ -193,6 +199,8 @@ describe('RetroportDashboardComponent', () => {
       status: 'ok',
       nViews: 2,
       vertex_safe: false,
+      vertex_loadable: false,
+      vertex_status: 'overflow',
       emitter_safe: false,
       missing_textures: ['CatEyes.blp'],
       valid: false,
@@ -207,8 +215,28 @@ describe('RetroportDashboardComponent', () => {
     expect(component.payload.displayId).toBe(0); // unchanged — no display id returned
     expect(page.log.innerHTML).toContain('Repaired To Convert/Mage/ArcaneOrb');
     expect(page.metadata.innerHTML).toContain('CatEyes.blp'); // missing-texture warning rendered
-    expect(page.metadata.innerHTML).toContain('over limit'); // vertex_safe=false branch
+    expect(page.metadata.innerHTML).toContain('over 16-bit limit'); // vertex overflow branch
     expect(page.generatedSql.innerHTML).toContain('ITEM_SQL');
+  });
+
+  it('shows the "over budget (still loads)" caution for a heavy-but-loadable model', async () => {
+    orchestrator.runForModel.mockResolvedValue({
+      status: 'ok',
+      vertex_count: 35645,
+      vertex_safe: false,
+      vertex_loadable: true,
+      vertex_status: 'caution',
+      emitter_safe: true,
+      valid: true,
+    });
+
+    const { page } = setup();
+    page.setInputValueById('targetFolder', 'To Convert/Druid/Lunarwing');
+    page.clickElement(page.runBtn);
+    await page.whenStable();
+    page.detectChanges();
+
+    expect(page.metadata.innerHTML).toContain('over budget (still loads)');
   });
 
   it('passes --gen-dbc and the entered display id when DBC generation is enabled', async () => {
