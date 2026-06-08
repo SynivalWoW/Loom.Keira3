@@ -1,8 +1,8 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ElectronService } from '@keira/shared/common-services';
 import { vi } from 'vitest';
 
+import { ElectronService } from './electron.service';
 import { FileDialogService } from './file-dialog.service';
 
 describe('FileDialogService', () => {
@@ -33,6 +33,19 @@ describe('FileDialogService', () => {
   it('returns null when not running under Electron', async () => {
     isElectron.mockReturnValue(undefined);
     await expect(service.pickDirectory()).resolves.toBeNull();
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
+  it('invokes the native file picker with filters', async () => {
+    invoke.mockResolvedValue('/patch/CreatureDisplayInfo.dbc');
+    const filters = [{ name: 'DBC', extensions: ['dbc'] }];
+    await expect(service.pickFile(filters)).resolves.toBe('/patch/CreatureDisplayInfo.dbc');
+    expect(invoke).toHaveBeenCalledWith('dialog:openFile', filters);
+  });
+
+  it('pickFile returns null when not running under Electron', async () => {
+    isElectron.mockReturnValue(undefined);
+    await expect(service.pickFile()).resolves.toBeNull();
     expect(invoke).not.toHaveBeenCalled();
   });
 });

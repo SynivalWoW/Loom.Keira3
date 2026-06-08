@@ -11,6 +11,7 @@
 
       <label for="dbcPath">{{ 'DBC_EDITOR.PATH' | translate }}</label>
       <input id="dbcPath" type="text" [(ngModel)]="dbcPath" placeholder="(path to .dbc)" />
+      <button id="browse-btn" type="button" class="btn" (click)="browse()">{{ 'DBC_EDITOR.BROWSE' | translate }}</button>
 
       <button id="load-btn" type="button" class="btn" (click)="load()">{{ 'DBC_EDITOR.LOAD' | translate }}</button>
       <button id="save-btn" type="button" class="btn" (click)="save()">{{ 'DBC_EDITOR.SAVE' | translate }}</button>

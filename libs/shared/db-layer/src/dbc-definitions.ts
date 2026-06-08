@@ -2,7 +2,7 @@
  * DBC column layouts for the retroport tables, transcribed from WDBX Editor's authoritative
  * `WotLK 3.3.5 (12340)` definitions. Used by the in-GUI DBC editor and the DBC file service.
  */
-export type DbcFieldType = 'int' | 'float' | 'string';
+export type DbcFieldType = 'int' | 'float' | 'string' | 'loc';
 
 export interface DbcFieldDef {
   name: string;
@@ -68,6 +68,74 @@ export const DBC_DEFINITIONS: Record<string, DbcTableDef> = {
       { name: 'MissileCollisionRaise', type: 'float' },
     ],
   },
+  CreatureDisplayInfoExtra: {
+    name: 'CreatureDisplayInfoExtra',
+    fields: [
+      { name: 'ID', type: 'int' },
+      { name: 'DisplayRaceID', type: 'int' },
+      { name: 'DisplaySexID', type: 'int' },
+      { name: 'SkinID', type: 'int' },
+      { name: 'FaceID', type: 'int' },
+      { name: 'HairStyleID', type: 'int' },
+      { name: 'HairColorID', type: 'int' },
+      { name: 'FacialHairID', type: 'int' },
+      { name: 'NPCItemDisplay', type: 'int', array: 11 },
+      { name: 'Flags', type: 'int' },
+      { name: 'BakeName', type: 'string' },
+    ],
+  },
+  SpellShapeshiftForm: {
+    name: 'SpellShapeshiftForm',
+    fields: [
+      { name: 'ID', type: 'int' },
+      { name: 'BonusActionBar', type: 'int' },
+      { name: 'Name_Lang', type: 'loc' },
+      { name: 'Flags', type: 'int' },
+      { name: 'CreatureType', type: 'int' },
+      { name: 'AttackIconID', type: 'int' },
+      { name: 'CombatRoundTime', type: 'int' },
+      { name: 'CreatureDisplayID', type: 'int', array: 4 },
+      { name: 'PresetSpellID', type: 'int', array: 8 },
+    ],
+  },
+  CharSections: {
+    name: 'CharSections',
+    fields: [
+      { name: 'ID', type: 'int' },
+      { name: 'RaceID', type: 'int' },
+      { name: 'SexID', type: 'int' },
+      { name: 'BaseSection', type: 'int' },
+      { name: 'TextureName', type: 'string', array: 3 },
+      { name: 'Flags', type: 'int' },
+      { name: 'VariationIndex', type: 'int' },
+      { name: 'ColorIndex', type: 'int' },
+    ],
+  },
+  ChrRaces: {
+    name: 'ChrRaces',
+    fields: [
+      { name: 'ID', type: 'int' },
+      { name: 'Flags', type: 'int' },
+      { name: 'FactionID', type: 'int' },
+      { name: 'ExplorationSoundID', type: 'int' },
+      { name: 'MaleDisplayId', type: 'int' },
+      { name: 'FemaleDisplayId', type: 'int' },
+      { name: 'ClientPrefix', type: 'string' },
+      { name: 'BaseLanguage', type: 'int' },
+      { name: 'CreatureType', type: 'int' },
+      { name: 'ResSicknessSpellID', type: 'int' },
+      { name: 'SplashSoundID', type: 'int' },
+      { name: 'ClientFilestring', type: 'string' },
+      { name: 'CinematicSequenceID', type: 'int' },
+      { name: 'Alliance', type: 'int' },
+      { name: 'Name_Lang', type: 'loc' },
+      { name: 'Name_Female_Lang', type: 'loc' },
+      { name: 'Name_Male_Lang', type: 'loc' },
+      { name: 'FacialHairCustomization', type: 'string', array: 2 },
+      { name: 'HairCustomization', type: 'string' },
+      { name: 'Required_Expansion', type: 'int' },
+    ],
+  },
 };
 
 export const DBC_TABLE_NAMES = Object.keys(DBC_DEFINITIONS);
@@ -80,6 +148,14 @@ export function expandFields(table: string): DbcFieldDef[] {
   }
   const columns: DbcFieldDef[] = [];
   for (const field of def.fields) {
+    // A WotLK localized string ('loc') is 16 per-locale string columns + 1 flags column.
+    if (field.type === 'loc') {
+      for (let i = 1; i <= 16; i++) {
+        columns.push({ name: `${field.name}_${i}`, type: 'string' });
+      }
+      columns.push({ name: `${field.name}_flags`, type: 'int' });
+      continue;
+    }
     const count = field.array ?? 1;
     if (count > 1) {
       for (let i = 1; i <= count; i++) {

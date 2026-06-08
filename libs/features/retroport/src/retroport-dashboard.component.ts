@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { ToastrService } from 'ngx-toastr';
 
+import { FileDialogService } from '@keira/shared/common-services';
 import {
   DisplayIdStatus,
   DisplayIdValidatorService,
@@ -10,7 +11,6 @@ import {
   RetroportDbalService,
   RetroportPayload,
 } from '@keira/shared/db-layer';
-import { FileDialogService } from './file-dialog.service';
 import { OrchestratorBridgeService, OrchestratorResult } from './orchestrator-bridge.service';
 
 const DEFAULT_ORCHESTRATOR_PATH = 'loom_orchestrator.py';

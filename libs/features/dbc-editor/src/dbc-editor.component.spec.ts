@@ -1,6 +1,7 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { FileDialogService } from '@keira/shared/common-services';
 import { DbcFileService } from '@keira/shared/db-layer';
 import { PageObject, TranslateTestingModule } from '@keira/shared/test-utils';
 import { vi } from 'vitest';
@@ -17,6 +18,9 @@ class DbcEditorPage extends PageObject<DbcEditorComponent> {
   get addRowBtn() {
     return this.query<HTMLButtonElement>('#add-row-btn');
   }
+  get browseBtn() {
+    return this.query<HTMLButtonElement>('#browse-btn');
+  }
   get status() {
     return this.query<HTMLParagraphElement>('#dbc-status');
   }
@@ -24,6 +28,7 @@ class DbcEditorPage extends PageObject<DbcEditorComponent> {
 
 describe('DbcEditorComponent', () => {
   const dbcFile = { read: vi.fn(), write: vi.fn() };
+  const fileDialog = { pickFile: vi.fn() };
   const parsed = {
     fields: [
       { name: 'ID', type: 'int' as const },
@@ -35,10 +40,16 @@ describe('DbcEditorComponent', () => {
   beforeEach(() => {
     dbcFile.read.mockReset().mockReturnValue(parsed);
     dbcFile.write.mockReset();
+    fileDialog.pickFile.mockReset();
 
     TestBed.configureTestingModule({
       imports: [DbcEditorComponent, TranslateTestingModule],
-      providers: [provideZonelessChangeDetection(), provideNoopAnimations(), { provide: DbcFileService, useValue: dbcFile }],
+      providers: [
+        provideZonelessChangeDetection(),
+        provideNoopAnimations(),
+        { provide: DbcFileService, useValue: dbcFile },
+        { provide: FileDialogService, useValue: fileDialog },
+      ],
     }).compileComponents();
   });
 
@@ -111,5 +122,25 @@ describe('DbcEditorComponent', () => {
     page.clickElement(page.loadBtn);
     page.clickElement(page.saveBtn);
     expect(page.status.innerText).toContain('Error: EACCES');
+  });
+
+  it('fills the dbc path from the native file picker', async () => {
+    fileDialog.pickFile.mockResolvedValue('/abs/patch/CreatureModelData.dbc');
+    const { page, component } = setup();
+    page.clickElement(page.browseBtn);
+    await page.whenStable();
+
+    expect(fileDialog.pickFile).toHaveBeenCalledWith([{ name: 'DBC', extensions: ['dbc'] }]);
+    expect(component.dbcPath).toBe('/abs/patch/CreatureModelData.dbc');
+  });
+
+  it('leaves the dbc path unchanged when the picker is cancelled', async () => {
+    fileDialog.pickFile.mockResolvedValue(null);
+    const { page, component } = setup();
+    component.dbcPath = '/existing.dbc';
+    page.clickElement(page.browseBtn);
+    await page.whenStable();
+
+    expect(component.dbcPath).toBe('/existing.dbc');
   });
 });

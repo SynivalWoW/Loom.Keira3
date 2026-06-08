@@ -87,6 +87,12 @@ try {
       return result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0];
     });
 
+    // Native file picker (e.g. the DBC editor; renderer invokes 'dialog:openFile' with filters).
+    ipcMain.handle('dialog:openFile', async (_event, filters) => {
+      const result = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: filters ?? [] });
+      return result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0];
+    });
+
     // Navigation Top Bar
     const navMenu: Electron.MenuItemConstructorOptions[] = [
       {

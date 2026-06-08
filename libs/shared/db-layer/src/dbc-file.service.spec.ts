@@ -41,6 +41,15 @@ describe('DbcFileService', () => {
     expect(parsed.rows[0]['TextureVariation_3']).toBe('');
   });
 
+  it('round-trips a table with a localized (loc) field', () => {
+    const rows = [{ ID: 1, Name_Lang_1: 'Cat Form', Name_Lang_flags: 16776959 }];
+    const parsed = service.parse(service.serialize('SpellShapeshiftForm', rows), 'SpellShapeshiftForm');
+    expect(parsed.fields.length).toBe(35);
+    expect(parsed.rows[0]['Name_Lang_1']).toBe('Cat Form');
+    expect(parsed.rows[0]['Name_Lang_flags']).toBe(16776959);
+    expect(parsed.rows[0]['Name_Lang_2']).toBe(''); // other locales empty
+  });
+
   it('read() parses from the filesystem', () => {
     fs.readFileSync.mockReturnValue(service.serialize('CreatureModelData', [{ ID: 7, ModelName: 'x' }]));
     const parsed = service.read('/x.dbc', 'CreatureModelData');

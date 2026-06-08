@@ -986,6 +986,7 @@
     "TITLE": "DBC Editor",
     "TABLE": "Table",
     "PATH": "DBC file path",
+    "BROWSE": "Browse...",
     "LOAD": "Load",
     "SAVE": "Save",
     "ADD_ROW": "Add Row"

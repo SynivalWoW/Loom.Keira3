@@ -6,7 +6,7 @@ import { PageObject, TranslateTestingModule } from '@keira/shared/test-utils';
 import { ToastrService } from 'ngx-toastr';
 import { vi } from 'vitest';
 
-import { FileDialogService } from './file-dialog.service';
+import { FileDialogService } from '@keira/shared/common-services';
 import { OrchestratorBridgeService } from './orchestrator-bridge.service';
 import { RetroportDashboardComponent } from './retroport-dashboard.component';
 

@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { FileDialogService } from '@keira/shared/common-services';
 import { DBC_TABLE_NAMES, DbcCell, DbcFieldDef, DbcFileService, DbcRow } from '@keira/shared/db-layer';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -24,6 +25,16 @@ export class DbcEditorComponent {
   protected readonly status = signal<string>('');
 
   private readonly dbcFile = inject(DbcFileService);
+  private readonly fileDialog = inject(FileDialogService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  protected async browse(): Promise<void> {
+    const path = await this.fileDialog.pickFile([{ name: 'DBC', extensions: ['dbc'] }]);
+    if (path) {
+      this.dbcPath = path;
+      this.changeDetectorRef.markForCheck();
+    }
+  }
 
   protected load(): void {
     try {
