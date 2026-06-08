@@ -2,7 +2,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FileDialogService } from '@keira/shared/common-services';
-import { DbcFileService } from '@keira/shared/db-layer';
+import { DbcFileService, expandFields } from '@keira/shared/db-layer';
 import { PageObject, TranslateTestingModule } from '@keira/shared/test-utils';
 import { vi } from 'vitest';
 
@@ -26,6 +26,15 @@ class DbcEditorPage extends PageObject<DbcEditorComponent> {
   }
   get status() {
     return this.query<HTMLParagraphElement>('#dbc-status');
+  }
+  get tabs() {
+    return Array.from(this.fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.dbc-tab'));
+  }
+  get headers() {
+    return Array.from(this.fixture.nativeElement.querySelectorAll<HTMLTableCellElement>('.dbc-grid thead th'));
+  }
+  tab(name: string) {
+    return this.query<HTMLButtonElement>(`.dbc-tab[data-tab="${name}"]`);
   }
 }
 
@@ -195,5 +204,57 @@ describe('DbcEditorComponent', () => {
     );
     expect(dbcFile.write).not.toHaveBeenCalled();
     expect(page.status.innerText).toContain('Saved 1 rows');
+  });
+
+  it('shows no tabs for a table without field groups', () => {
+    const { page } = setup(); // default table = CreatureDisplayInfo (ungrouped)
+    page.clickElement(page.loadBtn);
+    expect(page.tabs.length).toBe(0);
+  });
+
+  it('renders field-group tabs for Spell.dbc and filters the grid to the active tab', () => {
+    // Make the mock return the real expanded Spell columns so grouping is meaningful.
+    const spellCols = expandFields('Spell');
+    dbcFile.read.mockReturnValue({ fields: spellCols, rows: [{ ID: 1 }] });
+
+    const { page, component } = setup();
+    component.table = 'Spell';
+    page.clickElement(page.loadBtn);
+
+    const tabNames = page.tabs.map((t) => t.getAttribute('data-tab'));
+    expect(tabNames).toEqual([
+      'All',
+      'General',
+      'Attributes',
+      'Costs & Reagents',
+      'Cast & Cooldown',
+      'Targeting',
+      'Proc & Aura State',
+      'Effects',
+      'Text & Visuals',
+    ]);
+
+    // "All" shows every column (234 + the index header + the actions header).
+    expect(page.headers.length).toBe(spellCols.length + 2);
+
+    // Switching to "General" narrows the grid and hides Effect columns.
+    page.clickElement(page.tab('General'));
+    const generalHeaders = page.headers.map((h) => h.textContent?.trim());
+    expect(generalHeaders).toContain('Category');
+    expect(generalHeaders).not.toContain('EffectBasePoints_1');
+    expect(component.activeTab()).toBe('General');
+
+    // The Effects tab exposes the effect columns instead.
+    page.clickElement(page.tab('Effects'));
+    expect(page.headers.map((h) => h.textContent?.trim())).toContain('EffectBasePoints_1');
+  });
+
+  it('falls back to all columns when the active tab matches no group', () => {
+    dbcFile.read.mockReturnValue({ fields: expandFields('Spell'), rows: [{ ID: 1 }] });
+    const { component } = setup();
+    component.table = 'Spell';
+    component.load();
+    component.activeTab.set('NoSuchTab'); // defensive: an unknown tab shows every column
+    expect(component.visibleFields()).toBe(component.fields());
   });
 });

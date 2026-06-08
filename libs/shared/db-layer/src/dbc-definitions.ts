@@ -9,11 +9,20 @@ export interface DbcFieldDef {
   name: string;
   type: DbcFieldType;
   array?: number;
+  /** The source field an expanded column came from (e.g. `EffectBasePoints_2` → `EffectBasePoints`). */
+  base?: string;
+}
+
+/** A named tab grouping a subset of a table's (base) fields — used to make wide tables navigable. */
+export interface DbcFieldGroup {
+  name: string;
+  fields: string[];
 }
 
 export interface DbcTableDef {
   name: string;
   fields: DbcFieldDef[];
+  groups?: DbcFieldGroup[];
 }
 
 export const DBC_DEFINITIONS: Record<string, DbcTableDef> = {
@@ -248,6 +257,154 @@ export const DBC_DEFINITIONS: Record<string, DbcTableDef> = {
       { name: 'SpellDescriptionVariableID', type: 'int' },
       { name: 'SpellDifficultyID', type: 'int' },
     ],
+    // Tab grouping for the 234-column editor (WoW-Spell-Editor style). Covers every base field.
+    groups: [
+      {
+        name: 'General',
+        fields: [
+          'ID',
+          'Category',
+          'DispelType',
+          'Mechanic',
+          'SpellLevel',
+          'BaseLevel',
+          'MaxLevel',
+          'MaxTargetLevel',
+          'PowerType',
+          'SchoolMask',
+          'SpellPriority',
+          'SpellDifficultyID',
+          'SpellDescriptionVariableID',
+          'SpellMissileID',
+        ],
+      },
+      {
+        name: 'Attributes',
+        fields: [
+          'Attributes',
+          'AttributesEx',
+          'AttributesEx2',
+          'AttributesEx3',
+          'AttributesEx4',
+          'AttributesEx5',
+          'AttributesEx6',
+          'AttributesEx7',
+          'ShapeshiftMask',
+          'ShapeshiftExclude',
+          'StanceBarOrder',
+          'DefenseType',
+          'PreventionType',
+          'SpellClassSet',
+          'SpellClassMask',
+        ],
+      },
+      {
+        name: 'Costs & Reagents',
+        fields: [
+          'ManaCost',
+          'ManaCostPerLevel',
+          'ManaPerSecond',
+          'ManaPerSecondPerLevel',
+          'ManaCostPercentage',
+          'PowerDisplayID',
+          'RuneCostID',
+          'Totem',
+          'Reagent',
+          'ReagentCount',
+          'EquippedItemClass',
+          'EquippedItemSubClassMask',
+          'EquippedItemInventoryTypeMask',
+        ],
+      },
+      {
+        name: 'Cast & Cooldown',
+        fields: [
+          'CastingTimeIndex',
+          'RecoveryTime',
+          'CategoryRecoveryTime',
+          'StartRecoveryCategory',
+          'StartRecoveryTime',
+          'DurationIndex',
+          'Speed',
+          'RangeIndex',
+          'ModalNextSpell',
+          'StackAmount',
+          'InterruptFlags',
+          'AuraInterruptFlags',
+          'ChannelInterruptFlags',
+        ],
+      },
+      {
+        name: 'Targeting',
+        fields: [
+          'Targets',
+          'TargetCreatureType',
+          'RequiresSpellFocus',
+          'FacingCasterFlags',
+          'MaxTargets',
+          'MinFactionId',
+          'MinReputation',
+          'RequiredAuraVision',
+          'RequiredTotemCategoryID',
+          'RequiredAreasID',
+        ],
+      },
+      {
+        name: 'Proc & Aura State',
+        fields: [
+          'CasterAuraState',
+          'TargetAuraState',
+          'ExcludeCasterAuraState',
+          'ExcludeTargetAuraState',
+          'CasterAuraSpell',
+          'TargetAuraSpell',
+          'ExcludeCasterAuraSpell',
+          'ExcludeTargetAuraSpell',
+          'ProcFlags',
+          'ProcChance',
+          'ProcCharges',
+        ],
+      },
+      {
+        name: 'Effects',
+        fields: [
+          'Effect',
+          'EffectDieSides',
+          'EffectRealPointsPerLevel',
+          'EffectBasePoints',
+          'EffectMechanic',
+          'EffectImplicitTargetA',
+          'EffectImplicitTargetB',
+          'EffectRadiusIndex',
+          'EffectApplyAuraName',
+          'EffectAmplitude',
+          'EffectMultipleValue',
+          'EffectChainTarget',
+          'EffectItemType',
+          'EffectMiscValue',
+          'EffectMiscValueB',
+          'EffectTriggerSpell',
+          'EffectPointsPerComboPoint',
+          'EffectSpellClassMaskA',
+          'EffectSpellClassMaskB',
+          'EffectSpellClassMaskC',
+          'EffectChainAmplitude',
+          'EffectBonusMultiplier',
+        ],
+      },
+      {
+        name: 'Text & Visuals',
+        fields: [
+          'Name_Lang',
+          'NameSubtext_Lang',
+          'Description_Lang',
+          'AuraDescription_Lang',
+          'SpellVisualID',
+          'SpellIconID',
+          'ActiveIconID',
+        ],
+      },
+    ],
   },
   SpellIcon: {
     name: 'SpellIcon',
@@ -309,19 +466,39 @@ export function expandFields(table: string): DbcFieldDef[] {
     // A WotLK localized string ('loc') is 16 per-locale string columns + 1 flags column.
     if (field.type === 'loc') {
       for (let i = 1; i <= 16; i++) {
-        columns.push({ name: `${field.name}_${i}`, type: 'string' });
+        columns.push({ name: `${field.name}_${i}`, type: 'string', base: field.name });
       }
-      columns.push({ name: `${field.name}_flags`, type: 'int' });
+      columns.push({ name: `${field.name}_flags`, type: 'int', base: field.name });
       continue;
     }
     const count = field.array ?? 1;
     if (count > 1) {
       for (let i = 1; i <= count; i++) {
-        columns.push({ name: `${field.name}_${i}`, type: field.type });
+        columns.push({ name: `${field.name}_${i}`, type: field.type, base: field.name });
       }
     } else {
-      columns.push({ name: field.name, type: field.type });
+      columns.push({ name: field.name, type: field.type, base: field.name });
     }
   }
   return columns;
+}
+
+/**
+ * Split a table's expanded columns into the tabs declared by its `groups` (returns `null` when the
+ * table has none). Any field not named in a group is gathered into a trailing "Other" tab, so tabs
+ * never hide a column.
+ */
+export function groupColumns(table: string): { name: string; columns: DbcFieldDef[] }[] | null {
+  const def = DBC_DEFINITIONS[table];
+  if (!def?.groups?.length) {
+    return null;
+  }
+  const columns = expandFields(table);
+  const groups = def.groups.map((g) => ({ name: g.name, columns: columns.filter((c) => g.fields.includes(c.base ?? c.name)) }));
+  const grouped = new Set(def.groups.flatMap((g) => g.fields));
+  const other = columns.filter((c) => !grouped.has(c.base ?? c.name));
+  if (other.length) {
+    groups.push({ name: 'Other', columns: other });
+  }
+  return groups;
 }

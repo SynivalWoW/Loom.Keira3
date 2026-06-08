@@ -1,4 +1,4 @@
-import { DBC_TABLE_NAMES, expandFields } from './dbc-definitions';
+import { DBC_DEFINITIONS, DBC_TABLE_NAMES, expandFields, groupColumns } from './dbc-definitions';
 
 describe('dbc-definitions', () => {
   it('lists the retroport DBC tables', () => {
@@ -54,6 +54,42 @@ describe('dbc-definitions', () => {
     expect(expandFields('SpellCastTimes').length).toBe(4);
     expect(expandFields('SpellRadius').length).toBe(4);
     expect(expandFields('SpellRange').length).toBe(40); // 1 + 2 + 2 + 1 + 17 + 17
+  });
+
+  it('groupColumns returns null for a table without groups, and tabs for Spell', () => {
+    expect(groupColumns('CreatureModelData')).toBeNull();
+    const groups = groupColumns('Spell');
+    expect(groups).not.toBeNull();
+    expect(groups!.map((g) => g.name)).toContain('Effects');
+  });
+
+  it('every Spell column belongs to exactly one tab (no orphaned "Other" group)', () => {
+    const groups = groupColumns('Spell')!;
+    const grouped = groups.flatMap((g) => g.columns.map((c) => c.name));
+    // completeness: the union of all tab columns equals the full 234-column set, with no duplicates
+    expect(new Set(grouped).size).toBe(234);
+    expect(grouped.length).toBe(234);
+    expect(groups.map((g) => g.name)).not.toContain('Other');
+  });
+
+  it('collects ungrouped fields into a trailing "Other" tab', () => {
+    // A table whose groups deliberately omit one field — the leftover lands in "Other".
+    DBC_DEFINITIONS['_TempGrouped'] = {
+      name: '_TempGrouped',
+      fields: [
+        { name: 'ID', type: 'int' },
+        { name: 'Grouped', type: 'int' },
+        { name: 'Ungrouped', type: 'int' },
+      ],
+      groups: [{ name: 'Main', fields: ['ID', 'Grouped'] }],
+    };
+    try {
+      const groups = groupColumns('_TempGrouped')!;
+      expect(groups.map((g) => g.name)).toEqual(['Main', 'Other']);
+      expect(groups[1].columns.map((c) => c.name)).toEqual(['Ungrouped']);
+    } finally {
+      delete DBC_DEFINITIONS['_TempGrouped'];
+    }
   });
 
   it('throws on an unknown table', () => {

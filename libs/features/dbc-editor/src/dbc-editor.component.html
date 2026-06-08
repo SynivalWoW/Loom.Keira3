@@ -24,13 +24,29 @@
     <p id="dbc-status" class="status">{{ status() }}</p>
   </div>
 
+  @if (tabs().length) {
+    <div class="content-block dbc-tabs">
+      @for (tab of tabs(); track tab) {
+        <button
+          type="button"
+          class="btn btn-sm dbc-tab"
+          [class.active]="tab === activeTab()"
+          [attr.data-tab]="tab"
+          (click)="selectTab(tab)"
+        >
+          {{ tab }}
+        </button>
+      }
+    </div>
+  }
+
   @if (fields().length) {
     <div class="content-block dbc-grid-wrap">
       <table class="table table-sm table-striped dbc-grid">
         <thead>
           <tr>
             <th>#</th>
-            @for (f of fields(); track f.name) {
+            @for (f of visibleFields(); track f.name) {
               <th>{{ f.name }}</th>
             }
             <th></th>
@@ -40,7 +56,7 @@
           @for (row of rows(); track $index) {
             <tr>
               <td>{{ $index }}</td>
-              @for (f of fields(); track f.name) {
+              @for (f of visibleFields(); track f.name) {
                 <td>
                   <input
                     class="form-control form-control-sm dbc-cell"
