@@ -75,6 +75,30 @@ describe('DbcFileService', () => {
     expect(service.parse(written, 'CreatureModelData').rows[0]['ID']).toBe(9);
   });
 
+  it('round-trips a Spell.dbc row (int / float / array / loc columns)', () => {
+    const rows = [
+      {
+        ID: 80042,
+        Name_Lang_1: 'Solar Flare',
+        Description_Lang_1: 'Burns the target.',
+        Speed: 25.5,
+        EffectBasePoints_1: 1234,
+        Effect_1: 2,
+        SpellIconID: 555,
+      },
+    ];
+    const parsed = service.parse(service.serialize('Spell', rows), 'Spell');
+
+    expect(parsed.fields.length).toBe(234);
+    expect(parsed.rows[0]['ID']).toBe(80042);
+    expect(parsed.rows[0]['Name_Lang_1']).toBe('Solar Flare');
+    expect(parsed.rows[0]['Description_Lang_1']).toBe('Burns the target.');
+    expect(parsed.rows[0]['Speed']).toBeCloseTo(25.5);
+    expect(parsed.rows[0]['EffectBasePoints_1']).toBe(1234);
+    expect(parsed.rows[0]['SpellIconID']).toBe(555);
+    expect(parsed.rows[0]['Name_Lang_2']).toBe(''); // untouched locale defaults to empty
+  });
+
   it('readFromMpq() parses a dbc extracted from an archive', () => {
     mpq.read.mockReturnValue(service.serialize('CreatureModelData', [{ ID: 42, ModelName: 'cat.m2' }]));
     const parsed = service.readFromMpq('/patch.mpq', 'DBFilesClient\\CreatureModelData.dbc', 'CreatureModelData');

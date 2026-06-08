@@ -31,6 +31,31 @@ describe('dbc-definitions', () => {
     expect(cols.length).toBe(35); // 18 scalar/array columns + 17 for the loc field
   });
 
+  it('includes the spell-editing DBC tables', () => {
+    for (const table of ['Spell', 'SpellIcon', 'SpellDuration', 'SpellCastTimes', 'SpellRange', 'SpellRadius']) {
+      expect(DBC_TABLE_NAMES).toContain(table);
+    }
+  });
+
+  it('Spell.dbc expands to the authoritative 234 columns (936-byte records)', () => {
+    const cols = expandFields('Spell');
+    expect(cols.length).toBe(234);
+    expect(cols.length * 4).toBe(936); // recordSize for 3.3.5a build 12340
+    // spot-check array + loc + float expansion
+    expect(cols.map((c) => c.name)).toContain('EffectBasePoints_3');
+    expect(cols.find((c) => c.name === 'Speed')?.type).toBe('float');
+    expect(cols.filter((c) => /^Name_Lang_\d+$/.test(c.name)).length).toBe(16);
+    expect(cols.find((c) => c.name === 'SpellDifficultyID')).toBeTruthy();
+  });
+
+  it('expands the spell lookup tables to their record layouts', () => {
+    expect(expandFields('SpellIcon').length).toBe(2);
+    expect(expandFields('SpellDuration').length).toBe(4);
+    expect(expandFields('SpellCastTimes').length).toBe(4);
+    expect(expandFields('SpellRadius').length).toBe(4);
+    expect(expandFields('SpellRange').length).toBe(40); // 1 + 2 + 2 + 1 + 17 + 17
+  });
+
   it('throws on an unknown table', () => {
     expect(() => expandFields('Nope')).toThrow(/unknown DBC table/);
   });
